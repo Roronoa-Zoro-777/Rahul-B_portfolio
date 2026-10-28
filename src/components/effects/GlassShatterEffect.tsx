@@ -546,13 +546,13 @@ export function GlassShatterEffect() {
         ctx.restore();
       }
 
-      // 4. Render Tactical Video-Game Reload Animation at Click Position
+      // 4. Tactical Video Game Reload Animation at Click Position (High-Visibility HUD)
       const reloads = reloadsRef.current;
       for (let r = reloads.length - 1; r >= 0; r--) {
         const reload = reloads[r];
         reload.time += dt;
 
-        const totalLife = reload.duration + 0.32; // Active duration + lock fadeout
+        const totalLife = reload.duration + 0.35; // Active duration + lock flash fadeout
         if (reload.time >= totalLife) {
           reloads.splice(r, 1);
           continue;
@@ -561,12 +561,12 @@ export function GlassShatterEffect() {
         const isComplete = reload.time >= reload.duration;
         const progress = Math.min(1, reload.time / reload.duration);
 
-        // Alpha calculation: fast entrance (0.07s), solid, then smooth fade upon complete
+        // Alpha calculation: instantaneous vibrant pop-in (0.05s), then smooth fadeout
         let alpha = 1;
-        if (reload.time < 0.07) {
-          alpha = reload.time / 0.07;
+        if (reload.time < 0.05) {
+          alpha = reload.time / 0.05;
         } else if (isComplete) {
-          const fadeProgress = (reload.time - reload.duration) / 0.32;
+          const fadeProgress = (reload.time - reload.duration) / 0.35;
           alpha = Math.max(0, 1 - fadeProgress);
         }
 
@@ -574,88 +574,156 @@ export function GlassShatterEffect() {
         ctx.translate(reload.x, reload.y);
         ctx.globalAlpha = alpha;
 
-        const baseRadius = 24;
-        const popScale = isComplete ? 1 + (1 - alpha) * 0.22 : 1;
+        const baseRadius = 38;
+        const popScale = isComplete ? 1 + (1 - alpha) * 0.18 : 1;
         const radius = baseRadius * popScale;
 
-        // Background track circle
+        // 1. High-Contrast Frosted HUD Backdrop Disc (guarantees 100% visibility over any surface)
         ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
-        ctx.lineWidth = 2;
+        ctx.arc(0, 0, 48 * popScale, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(6, 13, 22, 0.90)";
+        ctx.shadowColor = isComplete ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 240, 255, 0.75)";
+        ctx.shadowBlur = 18;
+        ctx.fill();
+        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.85)" : "rgba(0, 240, 255, 0.6)";
+        ctx.lineWidth = 1.8;
         ctx.stroke();
 
-        // Sweeping Reload Progress Arc (from 12 o'clock clockwise)
+        // 2. Corner Target Brackets [ ]
+        const bracketDist = 53 * popScale;
+        const bracketSize = 8;
+        ctx.strokeStyle = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowBlur = 10;
+        for (let b = 0; b < 4; b++) {
+          const a = (b * Math.PI) / 2 + Math.PI / 4;
+          const bx = Math.cos(a) * bracketDist;
+          const by = Math.sin(a) * bracketDist;
+          ctx.beginPath();
+          ctx.moveTo(bx, by - Math.sign(by) * bracketSize);
+          ctx.lineTo(bx, by);
+          ctx.lineTo(bx - Math.sign(bx) * bracketSize, by);
+          ctx.stroke();
+        }
+
+        // 3. Thick Neon Reload Progress Ring
+        // Background track
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // Sweeping progress arc from 12 o'clock clockwise
         const startAngle = -Math.PI / 2;
         const endAngle = startAngle + progress * Math.PI * 2;
         ctx.beginPath();
         ctx.arc(0, 0, radius, startAngle, endAngle);
-        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 1.0)" : "rgba(0, 229, 255, 0.95)";
-        ctx.shadowColor = isComplete ? "rgba(255, 255, 255, 0.95)" : "rgba(0, 229, 255, 0.85)";
-        ctx.shadowBlur = isComplete ? 10 : 7;
-        ctx.lineWidth = isComplete ? 3.0 : 2.4;
+        ctx.strokeStyle = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowBlur = 16;
+        ctx.lineWidth = isComplete ? 5.5 : 5.0;
         ctx.lineCap = "round";
         ctx.stroke();
 
-        // Tactical 4 Corner Brackets [ ]
-        const bracketRadius = radius + 6;
-        const bracketSize = 4.5;
-        const bracketRot = (reload.time * 2.2) % (Math.PI * 2);
-        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.95)" : "rgba(0, 229, 255, 0.75)";
-        ctx.lineWidth = 1.4;
-        ctx.shadowBlur = 4;
+        // Glowing specular tip bead tracking the progress head
+        const tipX = Math.cos(endAngle) * radius;
+        const tipY = Math.sin(endAngle) * radius;
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "#00f0ff";
+        ctx.shadowBlur = 12;
+        ctx.fill();
 
-        for (let b = 0; b < 4; b++) {
-          const a = (b * Math.PI) / 2 + (isComplete ? 0 : bracketRot * 0.25);
-          const bx = Math.cos(a) * bracketRadius;
-          const by = Math.sin(a) * bracketRadius;
+        // 4. Six Chamber Cartridges (revolving cylinder pips)
+        const chamberCount = 6;
+        const chamberRadius = 21 * popScale;
+        const spin = isComplete ? 0 : reload.time * 5.5;
+        for (let c = 0; c < chamberCount; c++) {
+          const ca = (c * Math.PI * 2) / chamberCount + spin;
+          const cx = Math.cos(ca) * chamberRadius;
+          const cy = Math.sin(ca) * chamberRadius;
+          const isLoaded = isComplete || progress >= (c + 1) / chamberCount;
+
           ctx.beginPath();
-          ctx.moveTo(bx - Math.cos(a) * bracketSize, by - Math.sin(a) * bracketSize);
-          ctx.lineTo(bx, by);
-          ctx.stroke();
-        }
-
-        // Revolving Chamber Ticks / Center Lock Pip
-        if (!isComplete) {
-          const pips = 4;
-          const pipRadius = 14;
-          const spin = reload.time * 8; // Chamber rotation speed
-          for (let p = 0; p < pips; p++) {
-            const pa = (p * Math.PI * 2) / pips + spin;
-            const px = Math.cos(pa) * pipRadius;
-            const py = Math.sin(pa) * pipRadius;
-            ctx.beginPath();
-            ctx.arc(px, py, 1.6, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.85)";
-            ctx.shadowBlur = 4;
-            ctx.fill();
+          ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
+          if (isLoaded) {
+            ctx.fillStyle = isComplete ? "#ffffff" : "#00f0ff";
+            ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+            ctx.shadowBlur = 8;
+          } else {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+            ctx.shadowBlur = 0;
           }
-        } else {
-          // Locked Center Indicator Pip
-          ctx.beginPath();
-          ctx.arc(0, 0, 3, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
-          ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
-          ctx.shadowBlur = 8;
           ctx.fill();
         }
 
-        // Monospace Tactical Reload HUD Text
-        ctx.font = "bold 9px var(--font-geist-mono), monospace, sans-serif";
+        // Center reticle dot
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowBlur = 8;
+        ctx.fill();
+
+        // 5. High-Contrast Tactical Text Pill Badge
+        const badgeY = 64;
+        const badgeW = 108;
+        const badgeH = 22;
+        const badgeR = 6;
+        const bx = -badgeW / 2;
+        const by = badgeY - badgeH / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(bx + badgeR, by);
+        ctx.lineTo(bx + badgeW - badgeR, by);
+        ctx.arcTo(bx + badgeW, by, bx + badgeW, by + badgeR, badgeR);
+        ctx.lineTo(bx + badgeW, by + badgeH - badgeR);
+        ctx.arcTo(bx + badgeW, by + badgeH, bx + badgeW - badgeR, by + badgeH, badgeR);
+        ctx.lineTo(bx + badgeR, by + badgeH);
+        ctx.arcTo(bx, by + badgeH, bx, by + badgeH - badgeR, badgeR);
+        ctx.lineTo(bx, by + badgeR);
+        ctx.arcTo(bx, by, bx + badgeR, by, badgeR);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(4, 9, 16, 0.94)";
+        ctx.fill();
+        ctx.strokeStyle = isComplete ? "#ffffff" : "rgba(0, 240, 255, 0.75)";
+        ctx.lineWidth = 1.6;
+        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+
+        // Crisp bold monospace HUD status text
+        ctx.font = "bold 11px var(--font-geist-mono), 'Courier New', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
         if (!isComplete) {
           const percent = Math.floor(progress * 100);
-          ctx.fillStyle = "rgba(0, 229, 255, 0.95)";
-          ctx.shadowColor = "rgba(0, 229, 255, 0.8)";
-          ctx.shadowBlur = 6;
-          ctx.fillText(`RELOAD ${percent}%`, 0, radius + 15);
+          ctx.fillStyle = "#00f0ff";
+          ctx.shadowColor = "#00f0ff";
+          ctx.shadowBlur = 10;
+          ctx.fillText(`RELOAD  ${percent}%`, 0, badgeY);
         } else {
-          ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
-          ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
-          ctx.shadowBlur = 8;
-          ctx.fillText("READY", 0, radius + 15);
+          ctx.fillStyle = "#ffffff";
+          ctx.shadowColor = "#ffffff";
+          ctx.shadowBlur = 12;
+          ctx.fillText("READY // OK", 0, badgeY);
+        }
+
+        // 6. Completion Shockwave Ring
+        if (isComplete) {
+          const flashProgress = (reload.time - reload.duration) / 0.35;
+          const shockRadius = (48 + flashProgress * 28) * popScale;
+          const shockAlpha = (1 - flashProgress) * 0.9;
+          ctx.beginPath();
+          ctx.arc(0, 0, shockRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${shockAlpha})`;
+          ctx.lineWidth = 2.5 * (1 - flashProgress);
+          ctx.stroke();
         }
 
         ctx.restore();
