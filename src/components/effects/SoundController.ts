@@ -8,10 +8,12 @@ class SoundManager {
   constructor() {
     if (typeof window !== "undefined") {
       // Pre-create a pool of audio elements for zero-latency overlapping playback of the exact MP3
+      // Reduced volume (0.35) keeps original waveform clean and comfortable
       for (let i = 0; i < 8; i++) {
         try {
           const audio = new Audio("/sounds/custom-shoot.mp3");
           audio.preload = "auto";
+          audio.volume = 0.35;
           this.audioPool.push(audio);
         } catch {
           // Fallback
@@ -57,10 +59,12 @@ class SoundManager {
       if (this.audioPool.length > 0) {
         const sound = this.audioPool[this.poolIndex];
         this.poolIndex = (this.poolIndex + 1) % this.audioPool.length;
+        sound.volume = 0.35;
         sound.currentTime = 0;
         sound.play().catch(() => {});
       } else {
         const fallback = new Audio("/sounds/custom-shoot.mp3");
+        fallback.volume = 0.35;
         fallback.play().catch(() => {});
       }
     } catch {
