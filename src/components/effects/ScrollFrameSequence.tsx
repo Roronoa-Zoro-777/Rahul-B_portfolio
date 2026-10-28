@@ -29,7 +29,7 @@ export interface ScrollFrameSequenceProps {
   digits?: number;
   extension?: string;
   mobileFolder?: string;
-  /** Preload first frame via head tag */
+  /** Optional: preloadFirstFrame (deprecated) */
   preloadFirstFrame?: boolean;
   /** Dark overlay opacity (0 to 1, default 0.35) */
   overlayOpacity?: number;
@@ -55,7 +55,6 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   digits = 4,
   extension = ".webp",
   mobileFolder,
-  preloadFirstFrame = true,
   overlayOpacity = 0.35,
   children,
   onScrollProgress,
@@ -559,22 +558,14 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     };
   }, [sectionRef]);
 
-  // First frame URL for preload link
-  const firstFrameHref = resolveFrameUrl(1);
-
   return (
-    <>
-      {preloadFirstFrame && (
-        <link rel="preload" as="image" href={firstFrameHref} />
-      )}
-
-      <div
-        id={id}
-        ref={sectionRef as React.RefObject<HTMLDivElement>}
-        className={`relative w-full ${className}`}
-        style={{ height: `${scrollDistanceVh}vh` }}
-      >
-        {/* Sticky 100vh Canvas Viewport */}
+    <div
+      id={id}
+      ref={sectionRef as React.RefObject<HTMLDivElement>}
+      className={`relative w-full ${className}`}
+      style={{ height: `${scrollDistanceVh}vh` }}
+    >
+      {/* Sticky 100vh Canvas Viewport */}
         <div
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={{ willChange: "transform", transform: "translateZ(0)" }}
@@ -613,6 +604,6 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
           )}
         </div>
       </div>
-    </>
-  );
-});
+    );
+  }
+);
