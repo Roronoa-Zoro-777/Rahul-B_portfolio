@@ -104,11 +104,10 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 border-b transition-[border-color,background-color] duration-300 ${
-        scrolled
+      className={`fixed inset-x-0 top-0 z-40 border-b transition-[border-color,background-color] duration-300 ${scrolled
           ? "border-white/10 bg-background/60 backdrop-blur-md"
           : "border-transparent bg-transparent"
-      }`}
+        }`}
     >
       <div className="relative mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-8 md:py-5">
         <MagneticButton strength={0.2}>
@@ -143,11 +142,10 @@ export function Navbar() {
               href="/projects"
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/projects"
+              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/projects"
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "text-white/90"
-              }`}
+                }`}
             >
               Projects
             </Link>
@@ -158,11 +156,10 @@ export function Navbar() {
               href="/certificates"
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/certificates"
+              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/certificates"
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "text-white/90"
-              }`}
+                }`}
             >
               Certificates
             </Link>
@@ -194,9 +191,8 @@ export function Navbar() {
               soundController.playShot();
               setMenuOpen((open) => !open);
             }}
-            className={`nav-glass inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent ${
-              menuOpen ? "rotate-90 scale-110" : "rotate-0"
-            }`}
+            className={`nav-glass inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent ${menuOpen ? "rotate-90 scale-110" : "rotate-0"
+              }`}
           >
             {menuOpen ? (
               <X size={20} weight="bold" className="transition-transform duration-300" />
@@ -221,9 +217,8 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/projects" ? "bg-accent/15 text-accent" : "text-white/90"
-              }`}
+              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/projects" ? "bg-accent/15 text-accent" : "text-white/90"
+                }`}
             >
               Projects
             </Link>
@@ -233,9 +228,8 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/certificates" ? "bg-accent/15 text-accent" : "text-white/90"
-              }`}
+              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/certificates" ? "bg-accent/15 text-accent" : "text-white/90"
+                }`}
             >
               Certificates
             </Link>

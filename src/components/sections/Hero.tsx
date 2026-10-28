@@ -33,9 +33,9 @@ export function Hero() {
       progressFillRef.current.style.transform = `scaleX(${progress})`;
     }
 
-    // Hero title fade out in first 8%
+    // Hero title & data analyst points fade out in first 10%
     if (heroTextRef.current) {
-      const fadeOutEnd = 0.08;
+      const fadeOutEnd = 0.10;
       const opacity = Math.max(0, 1 - progress / fadeOutEnd);
       heroTextRef.current.style.opacity = String(opacity);
       heroTextRef.current.style.transform = `translate3d(0, ${(1 - opacity) * 14}px, 0)`;
@@ -114,21 +114,74 @@ export function Hero() {
           activeSector="SECTOR 01 // ORBITAL DEPLOY"
         />
 
-        {/* Hero Title Reveal */}
+        {/* Hero Title & Data Analyst Overview */}
         <div
           ref={heroTextRef}
-          className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-start gap-4 px-6 pb-24 will-change-transform md:px-12 md:pb-28"
+          className="absolute inset-x-0 bottom-0 z-10 flex max-w-5xl flex-col items-start gap-4 px-6 pb-16 will-change-transform md:px-12 md:pb-20"
           style={{
             transform: `translate3d(0, 0, 0) skewY(${velocityEffects.skewDeg * 0.5}deg)`,
           }}
         >
           <EyebrowBadge>DATA ANALYTICS // PROFILE // ONLINE</EyebrowBadge>
-          <h1 className="max-w-[14ch] font-sans text-5xl font-bold leading-[0.95] tracking-tighter text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.85)] md:text-7xl lg:text-8xl">
-            <span className="block text-zinc-300">I am</span>
-            <TextReveal as="span" className="text-[#f4bd45]" delayMs={150}>
-              Rahul B
-            </TextReveal>
-          </h1>
+          
+          <div className="flex flex-col gap-1">
+            <h1 className="max-w-[14ch] font-sans text-4xl font-bold leading-[0.95] tracking-tighter text-white [text-shadow:0_3px_18px_rgba(0,0,0,0.85)] md:text-6xl lg:text-7xl">
+              <span className="block text-zinc-300">I am</span>
+              <TextReveal as="span" className="text-[#f4bd45]" delayMs={150}>
+                Rahul B
+              </TextReveal>
+            </h1>
+            <p className="mt-1 font-mono text-xs font-semibold uppercase tracking-[0.24em] text-accent md:text-sm">
+              Data Analyst &bull; Decision Systems &bull; Business Intelligence
+            </p>
+          </div>
+
+          {/* Tactical Highlights: Points as Data Analyst */}
+          <div className="liquid-glass mt-1 flex max-w-3xl flex-col gap-3 rounded-2xl border border-white/15 bg-black/65 p-4 shadow-[0_12px_36px_rgba(0,0,0,0.7)] backdrop-blur-xl md:p-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-400 md:text-[11px]">
+              <span className="font-bold text-accent">DATA ANALYST DOSSIER // HIGHLIGHTS</span>
+              <span className="hidden sm:inline">STATUS: ONLINE</span>
+            </div>
+            
+            <ul className="grid grid-cols-1 gap-2.5 font-sans text-xs text-zinc-200 sm:grid-cols-2 md:text-sm">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-base leading-none text-accent">&bull;</span>
+                <span>
+                  <strong className="font-semibold text-white">Executive BI Dashboards:</strong> Architecting custom Power BI & Tableau dashboards with automated KPI reporting.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-base leading-none text-accent">&bull;</span>
+                <span>
+                  <strong className="font-semibold text-white">SQL & Relational Modeling:</strong> Advanced querying, window functions, and schema optimization across PostgreSQL.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-base leading-none text-accent">&bull;</span>
+                <span>
+                  <strong className="font-semibold text-white">Predictive Analytics:</strong> Python-driven statistical modeling (Pandas, Scikit-learn) for forecasting & churn analysis.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-base leading-none text-accent">&bull;</span>
+                <span>
+                  <strong className="font-semibold text-white">Actionable Insights:</strong> Translating raw, ambiguous data into strategic roadmaps that drive quantifiable growth.
+                </span>
+              </li>
+            </ul>
+
+            <div className="flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-2 font-mono text-[10px] uppercase text-zinc-400">
+              <span className="font-semibold text-accent">CORE TOOLKIT:</span>
+              {["SQL", "Python", "Power BI", "Tableau", "PostgreSQL", "Pandas", "Scikit-Learn"].map((tool) => (
+                <span
+                  key={tool}
+                  className="rounded-full border border-white/15 bg-white/[0.04] px-2 py-0.5 text-zinc-300"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Left Interactive Narrative Block */}
