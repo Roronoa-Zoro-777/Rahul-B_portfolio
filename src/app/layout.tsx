@@ -4,6 +4,8 @@ import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { CustomCrosshair } from "@/components/effects/CustomCrosshair";
 import { CinematicOverlay } from "@/components/effects/CinematicOverlay";
+import { QuickNavHud } from "@/components/ui/QuickNavHud";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -90,11 +92,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="relative min-h-full bg-background text-foreground grain">
+        <JsonLd />
         <SmoothScrollProvider>
           {/* Global Polished Effects */}
           <CinematicOverlay />
           <CustomCrosshair />
           {children}
+          <QuickNavHud />
         </SmoothScrollProvider>
       </body>
     </html>

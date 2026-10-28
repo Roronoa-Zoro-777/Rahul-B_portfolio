@@ -7,6 +7,8 @@ import {
   ArrowUpRight,
   DownloadSimple,
   X,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react";
 import { certificatesList, Certificate } from "@/lib/certificates";
 import { ScrollFrameSequence } from "@/components/effects/ScrollFrameSequence";
@@ -144,10 +146,37 @@ export function ScrollCertificatesShowcase({
     setModalCert(cert);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     soundController.playTick();
     setModalCert(null);
-  };
+  }, []);
+
+  const handlePrevCert = useCallback(() => {
+    if (!modalCert) return;
+    soundController.playTick();
+    const idx = certificatesList.findIndex((c) => c.id === modalCert.id);
+    const prev = (idx - 1 + certificatesList.length) % certificatesList.length;
+    setModalCert(certificatesList[prev]);
+  }, [modalCert]);
+
+  const handleNextCert = useCallback(() => {
+    if (!modalCert) return;
+    soundController.playTick();
+    const idx = certificatesList.findIndex((c) => c.id === modalCert.id);
+    const next = (idx + 1) % certificatesList.length;
+    setModalCert(certificatesList[next]);
+  }, [modalCert]);
+
+  useEffect(() => {
+    if (!modalCert) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleCloseModal();
+      if (e.key === "ArrowLeft") handlePrevCert();
+      if (e.key === "ArrowRight") handleNextCert();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [modalCert, handleCloseModal, handlePrevCert, handleNextCert]);
 
   // Reduced motion: standard stacked list fallback
   if (reducedMotion) {
@@ -321,6 +350,9 @@ export function ScrollCertificatesShowcase({
       {/* Fullscreen Tactical Liquid-Glass Modal */}
       {modalCert && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Certificate details: ${modalCert.title}`}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md md:p-8"
           onClick={handleCloseModal}
         >
@@ -330,20 +362,45 @@ export function ScrollCertificatesShowcase({
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
                   {modalCert.issuer} // {modalCert.year}
                 </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-zinc-400">
+                  {certificatesList.findIndex((c) => c.id === modalCert.id) + 1} / {certificatesList.length}
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="rounded-full border border-white/15 p-2 text-zinc-400 transition-colors hover:border-accent hover:text-accent"
-                aria-label="Close certificate preview"
-              >
-                <X size={18} weight="bold" />
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrevCert}
+                  className="rounded-full border border-white/15 p-2 text-zinc-400 transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label="Previous certificate (ArrowLeft)"
+                  title="Previous certificate (ArrowLeft)"
+                >
+                  <CaretLeft size={16} weight="bold" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextCert}
+                  className="rounded-full border border-white/15 p-2 text-zinc-400 transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label="Next certificate (ArrowRight)"
+                  title="Next certificate (ArrowRight)"
+                >
+                  <CaretRight size={16} weight="bold" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="rounded-full border border-white/15 p-2 text-zinc-400 transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label="Close certificate preview (Escape)"
+                  title="Close preview (Escape)"
+                >
+                  <X size={18} weight="bold" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}

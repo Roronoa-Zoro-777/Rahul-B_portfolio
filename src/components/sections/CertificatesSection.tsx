@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   ArrowUpRight,
@@ -60,6 +60,17 @@ export function CertificatesSection() {
     const nextIndex = (currentIndex + 1) % certificatesList.length;
     setSelectedCert(certificatesList[nextIndex]);
   };
+
+  useEffect(() => {
+    if (!selectedCert) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleCloseModal();
+      if (e.key === "ArrowLeft") handlePrevCert();
+      if (e.key === "ArrowRight") handleNextCert();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedCert]);
 
   return (
     <section
@@ -230,6 +241,9 @@ export function CertificatesSection() {
       {/* Fullscreen Tactical HUD Modal */}
       {selectedCert && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Certificate details: ${selectedCert.title}`}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md md:p-8"
           onClick={handleCloseModal}
         >

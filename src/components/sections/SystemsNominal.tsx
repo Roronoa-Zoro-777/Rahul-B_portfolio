@@ -112,13 +112,16 @@ export function SystemsNominal() {
                     ))}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
-                      <span>Proficiency</span>
-                      <span className="text-accent">{role.proficiency}%</span>
+                    <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-white/60">
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-1 w-1 rounded-full bg-accent animate-ping" />
+                        Proficiency
+                      </span>
+                      <span className="font-bold text-accent">{role.proficiency}%</span>
                     </div>
-                    <div className="h-1 overflow-hidden rounded-full bg-white/10">
+                    <div className="relative h-1.5 overflow-hidden rounded-full bg-white/10">
                       <div
-                        className="h-full bg-accent transition-[width] duration-500 ease-out"
+                        className="h-full rounded-full bg-gradient-to-r from-accent/70 via-accent to-yellow-300 shadow-[0_0_10px_rgba(212,162,47,0.8)] transition-[width] duration-700 ease-out"
                         style={{ width: `${role.proficiency}%` }}
                       />
                     </div>
