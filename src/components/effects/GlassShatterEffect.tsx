@@ -48,11 +48,19 @@ interface GlassSplinter {
   color: string;
 }
 
+interface ReloadIndicator {
+  x: number;
+  y: number;
+  time: number;
+  duration: number;
+}
+
 export function GlassShatterEffect() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const shardsRef = useRef<GlassShard[]>([]);
   const websRef = useRef<ImpactWeb[]>([]);
   const splintersRef = useRef<GlassSplinter[]>([]);
+  const reloadsRef = useRef<ReloadIndicator[]>([]);
   const rafIdRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const lastTriggerTimeRef = useRef<number>(0);
@@ -187,7 +195,7 @@ export function GlassShatterEffect() {
       });
     };
 
-    // Main shatter engine: creates realistic video game glass fragments
+    // Main shatter engine: creates realistic video game glass fragments & reload HUD
     const triggerVideoGameShatter = (x: number, y: number) => {
       const now = performance.now();
       // Debounce slightly to prevent double execution
@@ -300,6 +308,14 @@ export function GlassShatterEffect() {
           color: Math.random() > 0.4 ? "#ffffff" : "#cceeff", // Cold diamond crystal only (no yellow)
         });
       }
+
+      // 4. Tactical Video Game Reload Dial at Click Position
+      reloadsRef.current.push({
+        x,
+        y,
+        time: 0,
+        duration: 0.68, // 0.68s sleek tactical chamber reload
+      });
 
       // Kick off physics loop
       if (!rafIdRef.current) {
@@ -530,11 +546,127 @@ export function GlassShatterEffect() {
         ctx.restore();
       }
 
+      // 4. Render Tactical Video-Game Reload Animation at Click Position
+      const reloads = reloadsRef.current;
+      for (let r = reloads.length - 1; r >= 0; r--) {
+        const reload = reloads[r];
+        reload.time += dt;
+
+        const totalLife = reload.duration + 0.32; // Active duration + lock fadeout
+        if (reload.time >= totalLife) {
+          reloads.splice(r, 1);
+          continue;
+        }
+
+        const isComplete = reload.time >= reload.duration;
+        const progress = Math.min(1, reload.time / reload.duration);
+
+        // Alpha calculation: fast entrance (0.07s), solid, then smooth fade upon complete
+        let alpha = 1;
+        if (reload.time < 0.07) {
+          alpha = reload.time / 0.07;
+        } else if (isComplete) {
+          const fadeProgress = (reload.time - reload.duration) / 0.32;
+          alpha = Math.max(0, 1 - fadeProgress);
+        }
+
+        ctx.save();
+        ctx.translate(reload.x, reload.y);
+        ctx.globalAlpha = alpha;
+
+        const baseRadius = 24;
+        const popScale = isComplete ? 1 + (1 - alpha) * 0.22 : 1;
+        const radius = baseRadius * popScale;
+
+        // Background track circle
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Sweeping Reload Progress Arc (from 12 o'clock clockwise)
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + progress * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, startAngle, endAngle);
+        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 1.0)" : "rgba(0, 229, 255, 0.95)";
+        ctx.shadowColor = isComplete ? "rgba(255, 255, 255, 0.95)" : "rgba(0, 229, 255, 0.85)";
+        ctx.shadowBlur = isComplete ? 10 : 7;
+        ctx.lineWidth = isComplete ? 3.0 : 2.4;
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        // Tactical 4 Corner Brackets [ ]
+        const bracketRadius = radius + 6;
+        const bracketSize = 4.5;
+        const bracketRot = (reload.time * 2.2) % (Math.PI * 2);
+        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.95)" : "rgba(0, 229, 255, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.shadowBlur = 4;
+
+        for (let b = 0; b < 4; b++) {
+          const a = (b * Math.PI) / 2 + (isComplete ? 0 : bracketRot * 0.25);
+          const bx = Math.cos(a) * bracketRadius;
+          const by = Math.sin(a) * bracketRadius;
+          ctx.beginPath();
+          ctx.moveTo(bx - Math.cos(a) * bracketSize, by - Math.sin(a) * bracketSize);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+        }
+
+        // Revolving Chamber Ticks / Center Lock Pip
+        if (!isComplete) {
+          const pips = 4;
+          const pipRadius = 14;
+          const spin = reload.time * 8; // Chamber rotation speed
+          for (let p = 0; p < pips; p++) {
+            const pa = (p * Math.PI * 2) / pips + spin;
+            const px = Math.cos(pa) * pipRadius;
+            const py = Math.sin(pa) * pipRadius;
+            ctx.beginPath();
+            ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(0, 229, 255, 0.85)";
+            ctx.shadowBlur = 4;
+            ctx.fill();
+          }
+        } else {
+          // Locked Center Indicator Pip
+          ctx.beginPath();
+          ctx.arc(0, 0, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
+          ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
+          ctx.shadowBlur = 8;
+          ctx.fill();
+        }
+
+        // Monospace Tactical Reload HUD Text
+        ctx.font = "bold 9px var(--font-geist-mono), monospace, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        if (!isComplete) {
+          const percent = Math.floor(progress * 100);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.95)";
+          ctx.shadowColor = "rgba(0, 229, 255, 0.8)";
+          ctx.shadowBlur = 6;
+          ctx.fillText(`RELOAD ${percent}%`, 0, radius + 15);
+        } else {
+          ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
+          ctx.shadowColor = "rgba(255, 255, 255, 0.95)";
+          ctx.shadowBlur = 8;
+          ctx.fillText("READY", 0, radius + 15);
+        }
+
+        ctx.restore();
+      }
+
       // Check if any element is still active
       const hasActive =
         shardsRef.current.length > 0 ||
         websRef.current.length > 0 ||
-        splintersRef.current.length > 0;
+        splintersRef.current.length > 0 ||
+        reloadsRef.current.length > 0;
 
       if (hasActive) {
         rafIdRef.current = requestAnimationFrame(animatePhysicsLoop);
