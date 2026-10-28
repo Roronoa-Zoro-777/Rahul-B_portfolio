@@ -126,7 +126,7 @@ export const portfolioConfig = {
     sectionGlitch: true,
 
     /** 10. Web Audio API synthesized tactical sound effects (tick & shot) */
-    uiSounds: false, // OFF by default as requested; controllable via sound toggle in HUD
+    uiSounds: true, // Always active: plays on every user click
   },
 
   // ==========================================

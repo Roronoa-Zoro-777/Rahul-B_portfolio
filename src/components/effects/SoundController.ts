@@ -1,15 +1,22 @@
 "use client";
 
-import { portfolioConfig } from "@/config/portfolio.config";
-
 class SoundManager {
   private ctx: AudioContext | null = null;
-  private enabled: boolean = false;
+  private enabled: boolean = true;
+  private lastShotTime = 0;
 
   constructor() {
+    this.enabled = true;
+
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("portfolio_sound_enabled");
-      this.enabled = stored !== null ? stored === "true" : portfolioConfig.effects.uiSounds;
+      // Global click listener: every click anywhere on the page triggers the shoot sound
+      window.addEventListener(
+        "pointerdown",
+        () => {
+          this.playShot();
+        },
+        { passive: true }
+      );
     }
   }
 
@@ -31,13 +38,6 @@ class SoundManager {
 
   public toggle(): boolean {
     this.enabled = !this.enabled;
-    if (typeof window !== "undefined") {
-      localStorage.setItem("portfolio_sound_enabled", String(this.enabled));
-    }
-    if (this.enabled) {
-      this.initContext();
-      this.playShot();
-    }
     return this.enabled;
   }
 
@@ -58,7 +58,7 @@ class SoundManager {
       osc.frequency.setValueAtTime(1400, now);
       osc.frequency.exponentialRampToValueAtTime(600, now + 0.015);
 
-      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.setValueAtTime(0.035, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
 
       osc.connect(gain);
@@ -72,30 +72,52 @@ class SoundManager {
   }
 
   /**
-   * Tactical click pulse / shot (quick sub-punch + crisp snap)
+   * Tactical blaster / repulsor shoot sound on click
+   * Combines high-energy laser sweep with sub-bass kinetic punch
    */
   public playShot() {
     if (!this.enabled) return;
+    const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (nowMs - this.lastShotTime < 60) return; // Prevent duplicate triggers on same click
+    this.lastShotTime = nowMs;
+
     try {
       this.initContext();
       if (!this.ctx) return;
 
       const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
 
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(280, now);
-      osc.frequency.exponentialRampToValueAtTime(45, now + 0.06);
+      // Layer 1: High-energy laser/blaster sweep (850Hz -> 120Hz)
+      const oscBlaster = this.ctx.createOscillator();
+      const gainBlaster = this.ctx.createGain();
+      oscBlaster.type = "triangle";
+      oscBlaster.frequency.setValueAtTime(850, now);
+      oscBlaster.frequency.exponentialRampToValueAtTime(120, now + 0.055);
 
-      gain.gain.setValueAtTime(0.09, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+      gainBlaster.gain.setValueAtTime(0.08, now);
+      gainBlaster.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      oscBlaster.connect(gainBlaster);
+      gainBlaster.connect(this.ctx.destination);
 
-      osc.start(now);
-      osc.stop(now + 0.065);
+      oscBlaster.start(now);
+      oscBlaster.stop(now + 0.058);
+
+      // Layer 2: Sub-bass kinetic body punch (180Hz -> 38Hz)
+      const oscPunch = this.ctx.createOscillator();
+      const gainPunch = this.ctx.createGain();
+      oscPunch.type = "sine";
+      oscPunch.frequency.setValueAtTime(180, now);
+      oscPunch.frequency.exponentialRampToValueAtTime(38, now + 0.075);
+
+      gainPunch.gain.setValueAtTime(0.12, now);
+      gainPunch.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
+
+      oscPunch.connect(gainPunch);
+      gainPunch.connect(this.ctx.destination);
+
+      oscPunch.start(now);
+      oscPunch.stop(now + 0.08);
     } catch {
       // AudioContext policy fallback
     }

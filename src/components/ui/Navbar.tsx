@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, List, X } from "@phosphor-icons/react";
 import { MagneticButton } from "@/components/effects/MagneticButton";
-import { SoundToggle } from "@/components/effects/SoundToggle";
 import { soundController } from "@/components/effects/SoundController";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 
@@ -184,13 +183,9 @@ export function Navbar() {
               />
             </a>
           </MagneticButton>
-
-          {/* Sound Toggle (Modular Effect 10) */}
-          <SoundToggle />
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <SoundToggle />
           <button
             type="button"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
