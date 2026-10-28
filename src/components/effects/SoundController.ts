@@ -4,7 +4,9 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
   private lastShotTime = 0;
-  private noiseBuffer: AudioBuffer | null = null;
+  private gunshotBuffers: AudioBuffer[] = [];
+  private lastVariationIndex = -1;
+  private isPreloading = false;
 
   constructor() {
     this.enabled = true;
@@ -17,6 +19,9 @@ class SoundManager {
       // Listen on window for pointerdown (instant 0ms trigger) and click
       window.addEventListener("pointerdown", triggerSound, { passive: true });
       window.addEventListener("click", triggerSound, { passive: true });
+
+      // Start preloading gunshot audio files in background
+      this.preloadAudio();
     }
   }
 
@@ -34,20 +39,43 @@ class SoundManager {
       this.ctx.resume().catch(() => {});
     }
 
-    // Generate reusable white-noise buffer for shotgun blast
-    if (this.ctx && !this.noiseBuffer) {
-      const sampleRate = this.ctx.sampleRate;
-      const bufferLength = Math.floor(sampleRate * 0.35); // 350ms noise
-      const buffer = this.ctx.createBuffer(1, bufferLength, sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferLength; i++) {
-        // Brown/pink-weighted noise for deeper explosion texture
-        data[i] = (Math.random() * 2 - 1) * 0.85;
-      }
-      this.noiseBuffer = buffer;
-    }
-
     return this.ctx;
+  }
+
+  /**
+   * Preload the 4 realistic gunshot sound files into memory for instant 0ms playback
+   */
+  private async preloadAudio() {
+    if (this.isPreloading || typeof window === "undefined") return;
+    this.isPreloading = true;
+
+    const urls = [
+      "/sounds/gunshot-1.wav",
+      "/sounds/gunshot-2.wav",
+      "/sounds/gunshot-3.wav",
+      "/sounds/gunshot-4.wav",
+    ];
+
+    try {
+      const ctx = this.initContext();
+      if (!ctx) return;
+
+      const loadedBuffers = await Promise.all(
+        urls.map(async (url) => {
+          try {
+            const res = await fetch(url);
+            const arrayBuffer = await res.arrayBuffer();
+            return await ctx.decodeAudioData(arrayBuffer);
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      this.gunshotBuffers = loadedBuffers.filter((b): b is AudioBuffer => b !== null);
+    } catch {
+      // Fetch fallback
+    }
   }
 
   public isEnabled(): boolean {
@@ -90,121 +118,108 @@ class SoundManager {
   }
 
   /**
-   * Heavy Shotgun Blast with Deep High-Bass & Dynamic Click Variation
-   * High volume, clear bass punch (80-240Hz), explosive noise crack, and mechanical pump
+   * High-Fidelity Realistic Gunshot Audio on Click
+   * Uses real multi-layer gunshot audio samples with heavy bass punch,
+   * high volume, and distinct sound variation on every click.
    */
   public playShot() {
     if (!this.enabled) return;
     const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
-    // 70ms debounce to prevent multiple simultaneous triggers on the same click
-    if (nowMs - this.lastShotTime < 70) return;
+    // 60ms debounce to prevent double-triggering on identical click event
+    if (nowMs - this.lastShotTime < 60) return;
     this.lastShotTime = nowMs;
 
     try {
       const ctx = this.initContext();
       if (!ctx) return;
 
-      const now = ctx.currentTime;
-
-      // Master Compressor to maximize loudness and punch without harsh clipping
-      const compressor = ctx.createDynamicsCompressor();
-      compressor.threshold.setValueAtTime(-12, now);
-      compressor.knee.setValueAtTime(8, now);
-      compressor.ratio.setValueAtTime(6, now);
-      compressor.attack.setValueAtTime(0.002, now);
-      compressor.release.setValueAtTime(0.15, now);
-      compressor.connect(ctx.destination);
-
-      // Random variation factors so EVERY click sounds like a distinct shotgun blast
-      const pitchFactor = 0.88 + Math.random() * 0.24; // 0.88x to 1.12x variation
-      const blastFilterCutoff = 850 + Math.random() * 450; // 850Hz to 1300Hz
-      const blastDuration = 0.22 + Math.random() * 0.08; // 220ms to 300ms
-
-      // ========================================================
-      // LAYER 1: Explosive Gunpowder Muzzle Blast (Filtered Noise)
-      // ========================================================
-      if (this.noiseBuffer) {
-        const noiseSource = ctx.createBufferSource();
-        noiseSource.buffer = this.noiseBuffer;
-
-        const noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = "lowpass";
-        noiseFilter.frequency.setValueAtTime(blastFilterCutoff * pitchFactor, now);
-        noiseFilter.frequency.exponentialRampToValueAtTime(180, now + blastDuration);
-        noiseFilter.Q.setValueAtTime(2.2, now);
-
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.75, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + blastDuration);
-
-        noiseSource.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(compressor);
-
-        noiseSource.start(now);
-        noiseSource.stop(now + blastDuration + 0.02);
+      // Ensure audio files are loaded
+      if (this.gunshotBuffers.length === 0) {
+        this.preloadAudio();
       }
 
-      // ========================================================
-      // LAYER 2: Heavy High-Bass Kick & Punch (220Hz -> 50Hz)
-      // Highly audible through laptop speakers & powerful on headphones
-      // ========================================================
-      const bassOsc = ctx.createOscillator();
-      const bassGain = ctx.createGain();
-      bassOsc.type = "triangle"; // Rich odd harmonics for high-bass punch presence
-      
-      const startBassFreq = (220 + Math.random() * 30) * pitchFactor;
-      bassOsc.frequency.setValueAtTime(startBassFreq, now);
-      bassOsc.frequency.exponentialRampToValueAtTime(85, now + 0.06);
-      bassOsc.frequency.exponentialRampToValueAtTime(38, now + blastDuration);
+      const now = ctx.currentTime;
 
-      bassGain.gain.setValueAtTime(0.85, now);
-      bassGain.gain.exponentialRampToValueAtTime(0.0001, now + blastDuration);
+      // Master Compressor to maximize loudness and thunderous bass without distortion
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-14, now);
+      compressor.knee.setValueAtTime(6, now);
+      compressor.ratio.setValueAtTime(5, now);
+      compressor.attack.setValueAtTime(0.001, now);
+      compressor.release.setValueAtTime(0.18, now);
 
-      bassOsc.connect(bassGain);
-      bassGain.connect(compressor);
+      // Bass EQ boost around 90-180Hz for chest-thumping gunshot punch
+      const bassBoost = ctx.createBiquadFilter();
+      bassBoost.type = "peaking";
+      bassBoost.frequency.setValueAtTime(120, now);
+      bassBoost.gain.setValueAtTime(4.5, now);
+      bassBoost.Q.setValueAtTime(1.4, now);
 
-      bassOsc.start(now);
-      bassOsc.stop(now + blastDuration + 0.02);
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(1.15, now); // High volume punch
 
-      // ========================================================
-      // LAYER 3: Sub-Bass Air Pressure Boom (130Hz -> 30Hz)
-      // ========================================================
-      const subOsc = ctx.createOscillator();
-      const subGain = ctx.createGain();
-      subOsc.type = "sine";
-      subOsc.frequency.setValueAtTime(135 * pitchFactor, now);
-      subOsc.frequency.exponentialRampToValueAtTime(32, now + blastDuration * 1.1);
+      bassBoost.connect(compressor);
+      compressor.connect(masterGain);
+      masterGain.connect(ctx.destination);
 
-      subGain.gain.setValueAtTime(0.70, now);
-      subGain.gain.exponentialRampToValueAtTime(0.0001, now + blastDuration * 1.1);
+      // Pick next gunshot variation (ensuring different sound on each click)
+      if (this.gunshotBuffers.length > 0) {
+        let nextIndex = Math.floor(Math.random() * this.gunshotBuffers.length);
+        if (nextIndex === this.lastVariationIndex && this.gunshotBuffers.length > 1) {
+          nextIndex = (nextIndex + 1) % this.gunshotBuffers.length;
+        }
+        this.lastVariationIndex = nextIndex;
 
-      subOsc.connect(subGain);
-      subGain.connect(compressor);
+        const buffer = this.gunshotBuffers[nextIndex];
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
 
-      subOsc.start(now);
-      subOsc.stop(now + blastDuration * 1.1 + 0.02);
+        // Subtle randomized pitch shifting for organic realism
+        const pitchShift = 0.94 + Math.random() * 0.12; // 0.94x to 1.06x
+        source.playbackRate.setValueAtTime(pitchShift, now);
 
-      // ========================================================
-      // LAYER 4: Mechanical Cock / Shell Ejection Click (Metallic snap)
-      // ========================================================
-      const clickOsc = ctx.createOscillator();
-      const clickGain = ctx.createGain();
-      clickOsc.type = "square";
-      clickOsc.frequency.setValueAtTime(2600 * pitchFactor, now);
-      clickOsc.frequency.exponentialRampToValueAtTime(600, now + 0.022);
-
-      clickGain.gain.setValueAtTime(0.35, now);
-      clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
-
-      clickOsc.connect(clickGain);
-      clickGain.connect(compressor);
-
-      clickOsc.start(now);
-      clickOsc.stop(now + 0.03);
+        source.connect(bassBoost);
+        source.start(now);
+      } else {
+        // Instant acoustic fallback if buffers are still decoding
+        this.playSynthesizedGunshot(ctx, compressor);
+      }
     } catch {
       // AudioContext policy fallback
     }
+  }
+
+  /**
+   * Procedural acoustic gunshot backup
+   */
+  private playSynthesizedGunshot(ctx: AudioContext, destination: AudioNode) {
+    const now = ctx.currentTime;
+
+    // Supersonic crack
+    const oscCrack = ctx.createOscillator();
+    const gainCrack = ctx.createGain();
+    oscCrack.type = "sawtooth";
+    oscCrack.frequency.setValueAtTime(1800, now);
+    oscCrack.frequency.exponentialRampToValueAtTime(140, now + 0.04);
+    gainCrack.gain.setValueAtTime(0.9, now);
+    gainCrack.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+    oscCrack.connect(gainCrack);
+    gainCrack.connect(destination);
+    oscCrack.start(now);
+    oscCrack.stop(now + 0.045);
+
+    // Deep explosive thud
+    const oscThud = ctx.createOscillator();
+    const gainThud = ctx.createGain();
+    oscThud.type = "triangle";
+    oscThud.frequency.setValueAtTime(220, now);
+    oscThud.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+    gainThud.gain.setValueAtTime(0.95, now);
+    gainThud.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    oscThud.connect(gainThud);
+    gainThud.connect(destination);
+    oscThud.start(now);
+    oscThud.stop(now + 0.23);
   }
 }
 
