@@ -29,8 +29,8 @@ export const portfolioConfig = {
     /** Optional WebP optimized path pattern (set to this once converted) */
     webpPathPattern: (index: number) => `/amazing_spiderman/frame-${index}.webp`,
 
-    /** Lerp interpolation speed (0.08 - 0.12 recommended for smooth cinematic feel) */
-    lerpSpeed: 0.09,
+    /** Lerp interpolation speed (0.28 for responsive, zero-latency tracking) */
+    lerpSpeed: 0.28,
 
     /** Number of frames to skip on low-end hardware / mobile (2 = use every 2nd frame = 300 frames) */
     mobileFrameStep: 2,

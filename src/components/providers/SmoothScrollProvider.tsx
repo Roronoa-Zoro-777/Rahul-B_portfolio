@@ -31,11 +31,11 @@ export function SmoothScrollProvider({ children }: Props) {
     root.classList.add("lenis", "lenis-smooth");
 
     const instance = new Lenis({
-      lerp: 0.09,
-      duration: 1.1,
+      lerp: 0.12,
+      duration: 0.8,
       smoothWheel: true,
       syncTouch: false,
-      touchMultiplier: 1.1,
+      touchMultiplier: 1.0,
     });
     setLenis(instance);
 

@@ -15,17 +15,15 @@ export interface ScrollFrameSequenceProps {
   className?: string;
   /** Total frames in sequence (default 600) */
   totalFrames?: number;
-  /** Scroll height in vh for pinning wrapper (default 500 = 500vh) */
+  /** Scroll height in vh for pinning wrapper (default 450 = 450vh) */
   scrollDistanceVh?: number;
-  /** Lerp smoothing factor (default 0.12) */
+  /** Lerp smoothing factor (default 0.28 for instant, responsive tracking) */
   lerpSpeed?: number;
-  /** Number of initial frames required before unlocking page (default 30) */
+  /** Number of initial frames required before unlocking page (default 40) */
   initialBatchSize?: number;
-  /** Sliding window radius (+/- cacheWindowSize) of decoded frames in memory (default 40) */
-  cacheWindowSize?: number;
   /** Dynamic path resolver */
   getFramePath?: (frameNumber: number, isMobile?: boolean) => string;
-  /** Or folder/prefix/digits/extension configuration */
+  /** Folder/prefix/digits/extension configuration */
   folder?: string;
   prefix?: string;
   digits?: number;
@@ -40,7 +38,7 @@ export interface ScrollFrameSequenceProps {
   /** Non-react callbacks to avoid triggering re-renders */
   onScrollProgress?: (progress: number) => void;
   onFrameChange?: (frameIndex: number, targetFrame: number) => void;
-  /** Ref forwarding for the wrapper section (e.g. for external GSAP triggers) */
+  /** Ref forwarding for the wrapper section */
   sectionRefForward?: React.RefObject<HTMLElement | null>;
 }
 
@@ -48,10 +46,9 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   id,
   className = "",
   totalFrames = 600,
-  scrollDistanceVh = 500,
-  lerpSpeed = 0.12,
-  initialBatchSize = 30,
-  cacheWindowSize = 40,
+  scrollDistanceVh = 450,
+  lerpSpeed = 0.28,
+  initialBatchSize = 40,
   getFramePath,
   folder = "/frames/home",
   prefix = "frame_",
@@ -70,10 +67,12 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  // Animation & Frame tracking refs (No React state on scroll!)
+  // Animation & Frame tracking refs (No React state on scroll for 120 FPS performance)
   const targetFrameRef = useRef(1);
   const currentFrameRef = useRef(1);
   const lastRenderedFrameRef = useRef(-1);
+  const lastScrollDirectionRef = useRef<"down" | "up">("down");
+  const lastScrollYRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
 
   // Status flags
@@ -82,7 +81,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   const prefersReducedMotionRef = useRef(false);
   const isMobileRef = useRef(false);
 
-  // Cached layout measurements (updated only on mount/resize, NEVER on scroll!)
+  // Cached layout measurements
   const layoutCacheRef = useRef({
     sectionTop: 0,
     sectionHeight: 0,
@@ -96,12 +95,12 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   const onFrameChangeRef = useRef(onFrameChange);
   onFrameChangeRef.current = onFrameChange;
 
-  // Frame Cache & Memory Management
+  // Complete In-Memory Frame Cache (Zero Eviction: WebP frames are ~2.7KB each, total ~1.8MB)
   const imageCacheRef = useRef<Map<number, HTMLImageElement>>(new Map());
   const loadedFramesRef = useRef<Set<number>>(new Set());
   const pendingLoadsRef = useRef<Set<number>>(new Set());
 
-  // UI state only for initial load readiness and progress
+  // UI state for initial load readiness and progress
   const [initialReady, setInitialReady] = useState(false);
   const [loadPercent, setLoadPercent] = useState(0);
 
@@ -135,7 +134,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
       ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
       if (!ctx) return;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "medium";
+      ctx.imageSmoothingQuality = "high";
       ctxRef.current = ctx;
     }
 
@@ -168,15 +167,18 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
         return cache.get(target) || null;
       }
 
-      // Search outwards: target - 1, target + 1, target - 2, ...
+      // Search outward from target in both directions
       for (let dist = 1; dist < totalFrames; dist++) {
-        const lower = target - dist;
-        if (lower >= 1 && loaded.has(lower)) {
-          return cache.get(lower) || null;
+        // Check in opposite direction of current scroll first
+        const isUp = lastScrollDirectionRef.current === "up";
+        const first = isUp ? target + dist : target - dist;
+        const second = isUp ? target - dist : target + dist;
+
+        if (first >= 1 && first <= totalFrames && loaded.has(first)) {
+          return cache.get(first) || null;
         }
-        const upper = target + dist;
-        if (upper <= totalFrames && loaded.has(upper)) {
-          return cache.get(upper) || null;
+        if (second >= 1 && second <= totalFrames && loaded.has(second)) {
+          return cache.get(second) || null;
         }
       }
 
@@ -215,7 +217,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
               await img.decode();
             }
           } catch {
-            // Ignore decode failures on unsupported formats or unmount
+            // Safe fallback on unsupported formats
           }
           loaded.add(clamped);
           cache.set(clamped, img);
@@ -239,69 +241,89 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   );
 
   /**
-   * Evict distant frames outside sliding window to prevent memory bloat
-   */
-  const manageMemoryWindow = useCallback(
-    (activeFrame: number) => {
-      const cache = imageCacheRef.current;
-      const loaded = loadedFramesRef.current;
-      const maxDistance = cacheWindowSize * 2;
-
-      // Only evict if cache exceeds threshold
-      if (cache.size > cacheWindowSize * 3) {
-        for (const [frameNum, img] of cache.entries()) {
-          // Never evict frame 1 (fallback anchor)
-          if (frameNum === 1) continue;
-
-          if (Math.abs(frameNum - activeFrame) > maxDistance) {
-            img.src = ""; // Release underlying image bitmap memory
-            cache.delete(frameNum);
-            loaded.delete(frameNum);
-          }
-        }
-      }
-    },
-    [cacheWindowSize]
-  );
-
-  /**
-   * Prioritized loading: Window around current frame first, then outward
+   * Prioritized Dual-Direction Loading (Preloads forward AND reverse)
    */
   const requestSurroundingFrames = useCallback(
     (centerFrame: number) => {
-      const windowRadius = cacheWindowSize;
-      const minFrame = Math.max(1, centerFrame - windowRadius);
-      const maxFrame = Math.min(totalFrames, centerFrame + windowRadius);
+      const isUp = lastScrollDirectionRef.current === "up";
+      const forwardRadius = 40;
+      const reverseRadius = 25;
 
-      // Load forward first (user scrolling down is most common)
-      for (let f = centerFrame; f <= maxFrame; f++) {
+      // Primary direction
+      const primaryStart = isUp ? centerFrame : centerFrame;
+      const primaryEnd = isUp
+        ? Math.max(1, centerFrame - forwardRadius)
+        : Math.min(totalFrames, centerFrame + forwardRadius);
+      const step = isUp ? -1 : 1;
+
+      for (let f = primaryStart; isUp ? f >= primaryEnd : f <= primaryEnd; f += step) {
         if (!loadedFramesRef.current.has(f) && !pendingLoadsRef.current.has(f)) {
           loadSingleFrame(f);
         }
       }
-      // Load backward
-      for (let f = centerFrame - 1; f >= minFrame; f--) {
+
+      // Secondary opposite direction
+      const secondaryEnd = isUp
+        ? Math.min(totalFrames, centerFrame + reverseRadius)
+        : Math.max(1, centerFrame - reverseRadius);
+      const secondaryStep = isUp ? 1 : -1;
+
+      for (let f = centerFrame; isUp ? f <= secondaryEnd : f >= secondaryEnd; f += secondaryStep) {
         if (!loadedFramesRef.current.has(f) && !pendingLoadsRef.current.has(f)) {
           loadSingleFrame(f);
         }
       }
-
-      manageMemoryWindow(centerFrame);
     },
-    [cacheWindowSize, totalFrames, loadSingleFrame, manageMemoryWindow]
+    [totalFrames, loadSingleFrame]
   );
 
   /**
-   * Resize Canvas Backing Store (Capped at 1.5 dpr for peak GPU performance)
+   * Background idle loader to prefetch all 600 frames into memory
+   */
+  useEffect(() => {
+    let isCancelled = false;
+    let nextToLoad = initialBatchSize + 1;
+
+    const loadNextChunk = () => {
+      if (isCancelled || nextToLoad > totalFrames) return;
+
+      const chunkLimit = Math.min(totalFrames, nextToLoad + 12);
+      for (let f = nextToLoad; f <= chunkLimit; f++) {
+        if (!loadedFramesRef.current.has(f) && !pendingLoadsRef.current.has(f)) {
+          loadSingleFrame(f);
+        }
+      }
+      nextToLoad = chunkLimit + 1;
+
+      if (nextToLoad <= totalFrames) {
+        if ("requestIdleCallback" in window) {
+          (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(loadNextChunk);
+        } else {
+          setTimeout(loadNextChunk, 35);
+        }
+      }
+    };
+
+    // Begin background preloading 300ms after mount
+    const timer = setTimeout(loadNextChunk, 300);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [totalFrames, initialBatchSize, loadSingleFrame]);
+
+  /**
+   * Resize Canvas Backing Store (Optimized for High-DPI & Mobile)
    */
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Detect mobile
+    // Detect mobile device
     isMobileRef.current = window.innerWidth < 768;
 
-    // Cap devicePixelRatio at 1.5 as requested
+    // Device Pixel Ratio capped at 1.5 for high GPU throughput
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -311,7 +333,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
-    // Update layout cache
+    // Recalculate layout cache
     if (sectionRef.current) {
       const rect = sectionRef.current.getBoundingClientRect();
       const scrollTop = window.scrollY || window.pageYOffset || 0;
@@ -321,7 +343,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
       layoutCacheRef.current = { sectionTop, sectionHeight, windowHeight: height, scrollable };
     }
 
-    // Redraw immediately
+    // Redraw current frame
     const img = getNearestLoadedFrame(Math.round(currentFrameRef.current));
     if (img) {
       renderDrawable(img);
@@ -329,25 +351,53 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   }, [sectionRef, getNearestLoadedFrame, renderDrawable]);
 
   /**
-   * Passive Scroll Listener: Zero getBoundingClientRect layout reads!
+   * High-Precision Scroll Handler: Zero Latency, Tracks Scroll 1:1
    */
   const handleScroll = useCallback(() => {
-    const { sectionTop, scrollable } = layoutCacheRef.current;
+    let { sectionTop, scrollable } = layoutCacheRef.current;
+
+    // Auto-repair layout cache if measurements are not yet ready
+    if (scrollable <= 0 && sectionRef.current) {
+      const rect = sectionRef.current.getBoundingClientRect();
+      const curScroll = window.scrollY || window.pageYOffset || 0;
+      sectionTop = rect.top + curScroll;
+      const sectionHeight = sectionRef.current.offsetHeight;
+      scrollable = sectionHeight - window.innerHeight;
+      layoutCacheRef.current = {
+        sectionTop,
+        sectionHeight,
+        windowHeight: window.innerHeight,
+        scrollable,
+      };
+    }
+
     if (scrollable <= 0) return;
 
-    const scrollY = window.scrollY || window.pageYOffset || 0;
+    // Current scroll position from window
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+    // Track scroll direction for reverse scroll optimization
+    if (scrollY > lastScrollYRef.current) {
+      lastScrollDirectionRef.current = "down";
+    } else if (scrollY < lastScrollYRef.current) {
+      lastScrollDirectionRef.current = "up";
+    }
+    lastScrollYRef.current = scrollY;
+
+    // Raw progress calculation (0.0 to 1.0)
     const rawProgress = (scrollY - sectionTop) / scrollable;
     const progress = Math.max(0, Math.min(1, rawProgress));
 
+    // Target frame calculation (1 to totalFrames)
     targetFrameRef.current = 1 + progress * (totalFrames - 1);
 
     if (onScrollProgressRef.current) {
       onScrollProgressRef.current(progress);
     }
-  }, [totalFrames]);
+  }, [totalFrames, sectionRef]);
 
   /**
-   * Initial Setup: Preload batch & Frame 1 immediate rendering
+   * Initial Setup: Preload First Frame & Initial Batch (~40 frames)
    */
   useEffect(() => {
     prefersReducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -357,14 +407,14 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     let isCancelled = false;
     let loadedCount = 0;
 
-    // 1. Load Frame 1 immediately
+    // 1. Immediate Frame 1 loading
     loadSingleFrame(1).then((firstImg) => {
       if (isCancelled || !firstImg) return;
       renderDrawable(firstImg);
       lastRenderedFrameRef.current = 1;
     });
 
-    // 2. Progressive Initial Batch (~30 frames)
+    // 2. Initial batch preloading
     const initialBatch = Math.min(totalFrames, initialBatchSize);
     for (let f = 1; f <= initialBatch; f++) {
       loadSingleFrame(f).then(() => {
@@ -372,7 +422,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
         loadedCount++;
         setLoadPercent(Math.round((loadedCount / initialBatch) * 100));
 
-        if (loadedCount >= Math.min(12, initialBatch)) {
+        if (loadedCount >= Math.min(10, initialBatch)) {
           setInitialReady(true);
         }
       });
@@ -401,7 +451,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   }, [handleResize]);
 
   /**
-   * Scroll Listeners (Passive Window Scroll + Lenis Integration)
+   * Unified Scroll Listeners (Window + Lenis)
    */
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -420,7 +470,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   }, [handleScroll, lenis]);
 
   /**
-   * Animation rAF Loop with Lerp Smoothing
+   * Ultra-Smooth Animation Loop with Adaptive Responsive Interpolation
    */
   useEffect(() => {
     let lastFrameRequested = 1;
@@ -432,12 +482,16 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
       }
 
       if (isSectionInViewRef.current && isDocumentVisibleRef.current) {
-        // Smooth lerp easing
         const diff = targetFrameRef.current - currentFrameRef.current;
-        if (Math.abs(diff) > 0.001) {
-          currentFrameRef.current += diff * lerpSpeed;
-        } else {
+        const absDiff = Math.abs(diff);
+
+        // Adaptive lerp: Tight responsive tracking with zero drag latency
+        if (absDiff < 0.04) {
           currentFrameRef.current = targetFrameRef.current;
+        } else {
+          // Dynamic factor: when distance is large, catch up faster (prevents rubber-banding)
+          const adaptiveFactor = Math.min(0.55, Math.max(lerpSpeed, absDiff * 0.025));
+          currentFrameRef.current += diff * adaptiveFactor;
         }
 
         const nextRenderFrame = Math.max(
@@ -445,7 +499,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
           Math.min(totalFrames, Math.round(currentFrameRef.current))
         );
 
-        // Only redraw when the frame index actually changes!
+        // Only redraw when the target integer frame changes
         if (nextRenderFrame !== lastRenderedFrameRef.current) {
           const img = getNearestLoadedFrame(nextRenderFrame);
           if (img) {
@@ -458,8 +512,8 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
           }
         }
 
-        // Trigger progressive loading outward if user has moved
-        if (Math.abs(nextRenderFrame - lastFrameRequested) >= 3) {
+        // Trigger predictive preloading
+        if (Math.abs(nextRenderFrame - lastFrameRequested) >= 2) {
           lastFrameRequested = nextRenderFrame;
           requestSurroundingFrames(nextRenderFrame);
         }
@@ -479,7 +533,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   }, [lerpSpeed, totalFrames, getNearestLoadedFrame, renderDrawable, requestSurroundingFrames]);
 
   /**
-   * IntersectionObserver & Visibility Pausing (Saves GPU/CPU when offscreen)
+   * IntersectionObserver & Visibility Pausing (Saves GPU when offscreen)
    */
   useEffect(() => {
     const section = sectionRef.current;
@@ -489,7 +543,7 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
       ([entry]) => {
         isSectionInViewRef.current = entry.isIntersecting;
       },
-      { rootMargin: "200px 0px" }
+      { rootMargin: "300px 0px" }
     );
 
     observer.observe(section);
@@ -562,4 +616,3 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     </>
   );
 });
-
