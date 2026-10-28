@@ -4,14 +4,26 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private enabled: boolean = true;
   private lastShotTime = 0;
-  private gunshotBuffers: AudioBuffer[] = [];
-  private lastVariationIndex = -1;
+  private customBuffer: AudioBuffer | null = null;
+  private audioPool: HTMLAudioElement[] = [];
+  private poolIndex = 0;
   private isPreloading = false;
 
   constructor() {
     this.enabled = true;
 
     if (typeof window !== "undefined") {
+      // Pre-create an audio pool of 6 elements for instant overlapping playback
+      for (let i = 0; i < 6; i++) {
+        try {
+          const audio = new Audio("/sounds/custom-shoot.mp3");
+          audio.preload = "auto";
+          this.audioPool.push(audio);
+        } catch {
+          // Fallback
+        }
+      }
+
       const triggerSound = () => {
         this.playShot();
       };
@@ -20,7 +32,7 @@ class SoundManager {
       window.addEventListener("pointerdown", triggerSound, { passive: true });
       window.addEventListener("click", triggerSound, { passive: true });
 
-      // Start preloading clean rifle sound files
+      // Preload and decode custom sound into Web Audio buffer
       this.preloadAudio();
     }
   }
@@ -43,38 +55,21 @@ class SoundManager {
   }
 
   /**
-   * Preload clean rifle sound files into memory for instant playback
+   * Preload and decode the user's custom shoot sound into Web Audio memory
    */
   private async preloadAudio() {
     if (this.isPreloading || typeof window === "undefined") return;
     this.isPreloading = true;
 
-    const urls = [
-      "/sounds/gunshot-1.wav?v=2",
-      "/sounds/gunshot-2.wav?v=2",
-      "/sounds/gunshot-3.wav?v=2",
-      "/sounds/gunshot-4.wav?v=2",
-    ];
-
     try {
       const ctx = this.initContext();
       if (!ctx) return;
 
-      const loadedBuffers = await Promise.all(
-        urls.map(async (url) => {
-          try {
-            const res = await fetch(url);
-            const arrayBuffer = await res.arrayBuffer();
-            return await ctx.decodeAudioData(arrayBuffer);
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      this.gunshotBuffers = loadedBuffers.filter((b): b is AudioBuffer => b !== null);
+      const res = await fetch("/sounds/custom-shoot.mp3");
+      const arrayBuffer = await res.arrayBuffer();
+      this.customBuffer = await ctx.decodeAudioData(arrayBuffer);
     } catch {
-      // Fetch fallback
+      // Audio pool fallback handles it
     }
   }
 
@@ -104,7 +99,7 @@ class SoundManager {
       osc.frequency.setValueAtTime(1400, now);
       osc.frequency.exponentialRampToValueAtTime(600, now + 0.015);
 
-      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.setValueAtTime(0.035, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
 
       osc.connect(gain);
@@ -118,125 +113,48 @@ class SoundManager {
   }
 
   /**
-   * Clean, Smooth Tactical Rifle Shot on Click
-   * Crisp firing-pin transient with warm, deep acoustic bass thud.
-   * Completely clean with zero static noise or harsh distortion.
+   * Play the user's exact custom shoot sound on every click
+   * Uses Web Audio API buffer when ready, with cycling HTML5 Audio pool fallback
    */
   public playShot() {
     if (!this.enabled) return;
     const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
-    // 60ms debounce to prevent double-triggering on identical click event
-    if (nowMs - this.lastShotTime < 60) return;
+    // 50ms debounce to prevent double-triggering on identical click event
+    if (nowMs - this.lastShotTime < 50) return;
     this.lastShotTime = nowMs;
 
+    // 1. Try Web Audio API (high fidelity, instant zero-latency overlapping)
     try {
       const ctx = this.initContext();
-      if (!ctx) return;
-
-      if (this.gunshotBuffers.length === 0) {
-        this.preloadAudio();
-      }
-
-      const now = ctx.currentTime;
-
-      // Master Compressor for smooth, controlled loudness
-      const compressor = ctx.createDynamicsCompressor();
-      compressor.threshold.setValueAtTime(-12, now);
-      compressor.knee.setValueAtTime(8, now);
-      compressor.ratio.setValueAtTime(4, now);
-      compressor.attack.setValueAtTime(0.002, now);
-      compressor.release.setValueAtTime(0.12, now);
-
-      // Warm low-end peak (110Hz) for deep solid rifle punch
-      const warmEq = ctx.createBiquadFilter();
-      warmEq.type = "peaking";
-      warmEq.frequency.setValueAtTime(110, now);
-      warmEq.gain.setValueAtTime(3.0, now);
-      warmEq.Q.setValueAtTime(1.2, now);
-
-      // Gentle smooth lowpass (3800Hz) to remove any digital harshness
-      const smoothFilter = ctx.createBiquadFilter();
-      smoothFilter.type = "lowpass";
-      smoothFilter.frequency.setValueAtTime(3800, now);
-
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(1.0, now);
-
-      warmEq.connect(smoothFilter);
-      smoothFilter.connect(compressor);
-      compressor.connect(masterGain);
-      masterGain.connect(ctx.destination);
-
-      // Play pre-rendered clean rifle variation
-      if (this.gunshotBuffers.length > 0) {
-        let nextIndex = Math.floor(Math.random() * this.gunshotBuffers.length);
-        if (nextIndex === this.lastVariationIndex && this.gunshotBuffers.length > 1) {
-          nextIndex = (nextIndex + 1) % this.gunshotBuffers.length;
-        }
-        this.lastVariationIndex = nextIndex;
-
-        const buffer = this.gunshotBuffers[nextIndex];
+      if (ctx && this.customBuffer) {
         const source = ctx.createBufferSource();
-        source.buffer = buffer;
+        source.buffer = this.customBuffer;
 
-        // Subtle randomized micro-pitch (0.96x to 1.04x) for natural realism
-        const pitchShift = 0.96 + Math.random() * 0.08;
-        source.playbackRate.setValueAtTime(pitchShift, now);
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(1.0, ctx.currentTime);
 
-        source.connect(warmEq);
-        source.start(now);
-      } else {
-        // Immediate clean procedural rifle fallback
-        this.playProceduralCleanRifle(ctx, warmEq);
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        source.start(ctx.currentTime);
+        return;
       }
     } catch {
-      // AudioContext policy fallback
+      // Fall through to audio pool
     }
-  }
 
-  /**
-   * Clean procedural rifle backup (no noise, pure acoustic snap and warm thud)
-   */
-  private playProceduralCleanRifle(ctx: AudioContext, destination: AudioNode) {
-    const now = ctx.currentTime;
-
-    // 1. Crisp firing pin click (damped sine sweep 1200Hz -> 400Hz, 8ms)
-    const oscClick = ctx.createOscillator();
-    const gainClick = ctx.createGain();
-    oscClick.type = "sine";
-    oscClick.frequency.setValueAtTime(1200, now);
-    oscClick.frequency.exponentialRampToValueAtTime(400, now + 0.008);
-    gainClick.gain.setValueAtTime(0.5, now);
-    gainClick.gain.exponentialRampToValueAtTime(0.0001, now + 0.010);
-    oscClick.connect(gainClick);
-    gainClick.connect(destination);
-    oscClick.start(now);
-    oscClick.stop(now + 0.012);
-
-    // 2. Smooth deep rifle thud (180Hz -> 50Hz, 120ms)
-    const oscBass = ctx.createOscillator();
-    const gainBass = ctx.createGain();
-    oscBass.type = "triangle";
-    oscBass.frequency.setValueAtTime(180, now);
-    oscBass.frequency.exponentialRampToValueAtTime(50, now + 0.12);
-    gainBass.gain.setValueAtTime(0.85, now);
-    gainBass.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-    oscBass.connect(gainBass);
-    gainBass.connect(destination);
-    oscBass.start(now);
-    oscBass.stop(now + 0.15);
-
-    // 3. Chamber resonance (310Hz body "thock")
-    const oscChamber = ctx.createOscillator();
-    const gainChamber = ctx.createGain();
-    oscChamber.type = "sine";
-    oscChamber.frequency.setValueAtTime(310, now);
-    gainChamber.gain.setValueAtTime(0.35, now);
-    gainChamber.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-    oscChamber.connect(gainChamber);
-    gainChamber.connect(destination);
-    oscChamber.start(now);
-    oscChamber.stop(now + 0.06);
+    // 2. Cycling Audio Pool fallback (ensures guaranteed immediate playback)
+    try {
+      if (this.audioPool.length > 0) {
+        const sound = this.audioPool[this.poolIndex];
+        this.poolIndex = (this.poolIndex + 1) % this.audioPool.length;
+        sound.currentTime = 0;
+        sound.volume = 1.0;
+        sound.play().catch(() => {});
+      }
+    } catch {
+      // Audio policy fallback
+    }
   }
 }
 
