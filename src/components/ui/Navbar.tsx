@@ -74,8 +74,23 @@ export function Navbar() {
           el.scrollIntoView({ behavior: "smooth" });
         }
       }
+      window.history.pushState(null, "", `/#${targetId}`);
     } else {
       router.push(`/#${targetId}`);
+    }
+  };
+
+  const handleScrollToHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    soundController.playShot();
+    setMenuOpen(false);
+    if (pathname === "/") {
+      e.preventDefault();
+      if (lenis) {
+        lenis.scrollTo(0, { duration: 1.2 });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      window.history.pushState(null, "", "/");
     }
   };
 
@@ -93,14 +108,16 @@ export function Navbar() {
               el.scrollIntoView({ behavior: "smooth" });
             }
           }
-        }, 400);
+        }, 150);
       }
     };
 
-    scrollTarget();
+    if (window.location.hash) {
+      scrollTarget();
+    }
     window.addEventListener("hashchange", scrollTarget);
     return () => window.removeEventListener("hashchange", scrollTarget);
-  }, [lenis, pathname]);
+  }, [lenis]);
 
   return (
     <header
@@ -114,7 +131,7 @@ export function Navbar() {
           <Link
             href="/"
             onMouseEnter={() => soundController.playTick()}
-            onClick={() => soundController.playShot()}
+            onClick={handleScrollToHome}
             className="flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full px-2 py-1"
           >
             <span
@@ -129,17 +146,7 @@ export function Navbar() {
           <MagneticButton strength={0.25}>
             <Link
               href="/"
-              onClick={(e) => {
-                soundController.playShot();
-                if (pathname === "/") {
-                  e.preventDefault();
-                  if (lenis) {
-                    lenis.scrollTo(0, { duration: 1.2 });
-                  } else {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
-                }
-              }}
+              onClick={handleScrollToHome}
               className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 pathname === "/"
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
@@ -151,14 +158,14 @@ export function Navbar() {
           </MagneticButton>
 
           <MagneticButton strength={0.25}>
-            <a
+            <Link
               href="/#systems"
               onMouseEnter={() => soundController.playTick()}
               onClick={(e) => handleScrollTo(e, "systems")}
               className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Skills
-            </a>
+            </Link>
           </MagneticButton>
 
           <MagneticButton strength={0.25}>
@@ -190,7 +197,7 @@ export function Navbar() {
           </MagneticButton>
 
           <MagneticButton strength={0.25}>
-            <a
+            <Link
               href="/#contact"
               onMouseEnter={() => soundController.playTick()}
               onClick={(e) => handleScrollTo(e, "contact")}
@@ -202,7 +209,7 @@ export function Navbar() {
                 weight="bold"
                 className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
-            </a>
+            </Link>
           </MagneticButton>
         </nav>
 
@@ -245,18 +252,7 @@ export function Navbar() {
 
             <Link
               href="/"
-              onClick={(e) => {
-                soundController.playShot();
-                setMenuOpen(false);
-                if (pathname === "/") {
-                  e.preventDefault();
-                  if (lenis) {
-                    lenis.scrollTo(0, { duration: 1.2 });
-                  } else {
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
-                }
-              }}
+              onClick={handleScrollToHome}
               className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 pathname === "/"
                   ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
@@ -266,13 +262,13 @@ export function Navbar() {
               Home
             </Link>
 
-            <a
+            <Link
               href="/#systems"
               onClick={(e) => handleScrollTo(e, "systems")}
               className="rounded-2xl border border-transparent px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Skills
-            </a>
+            </Link>
             <Link
               href="/projects"
               onClick={() => {
@@ -301,14 +297,14 @@ export function Navbar() {
             >
               Certificates
             </Link>
-            <a
+            <Link
               href="/#contact"
               onClick={(e) => handleScrollTo(e, "contact")}
               className="flex items-center justify-between rounded-2xl border border-transparent px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Contact
               <ArrowUpRight size={14} weight="bold" />
-            </a>
+            </Link>
           </nav>
         )}
 

@@ -37,7 +37,9 @@ export function SmoothScrollProvider({ children }: Props) {
       syncTouch: false,
       touchMultiplier: 1.0,
     });
-    setLenis(instance);
+    queueMicrotask(() => {
+      setLenis(instance);
+    });
 
     instance.on("scroll", ScrollTrigger.update);
 

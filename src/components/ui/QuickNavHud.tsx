@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ArrowUp, Compass } from "@phosphor-icons/react";
+import { ArrowUp } from "@phosphor-icons/react";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { soundController } from "@/components/effects/SoundController";
 

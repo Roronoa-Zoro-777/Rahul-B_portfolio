@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { CustomCrosshair } from "@/components/effects/CustomCrosshair";
@@ -7,20 +8,6 @@ import { CinematicOverlay } from "@/components/effects/CinematicOverlay";
 import { GlassShatterEffect } from "@/components/effects/GlassShatterEffect";
 import { QuickNavHud } from "@/components/ui/QuickNavHud";
 import { JsonLd } from "@/components/seo/JsonLd";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["system-ui", "Segoe UI", "Roboto", "sans-serif"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["monospace", "Courier New"],
-});
 
 export const viewport: Viewport = {
   themeColor: "#0a0a0b",
@@ -90,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
       <body className="relative min-h-full bg-background text-foreground grain">
         <JsonLd />

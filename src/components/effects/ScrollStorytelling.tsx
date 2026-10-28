@@ -1,6 +1,6 @@
 "use client";
 
-import { useImperativeHandle, useRef, forwardRef } from "react";
+import { useImperativeHandle, useRef, forwardRef, useCallback } from "react";
 import { portfolioConfig, StoryBeat } from "@/config/portfolio.config";
 
 export interface ScrollStorytellingHandle {
@@ -14,46 +14,49 @@ interface ScrollStorytellingProps {
 export const ScrollStorytelling = forwardRef<
   ScrollStorytellingHandle,
   ScrollStorytellingProps
->(function ScrollStorytelling({ currentFrame = 1 }, ref) {
+>(function ScrollStorytelling(_props, ref) {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const beats = portfolioConfig.storyBeats;
 
-  const updateBeatDOM = (frame: number) => {
-    const fadeInMargin = 15;
-    const fadeOutMargin = 15;
+  const updateBeatDOM = useCallback(
+    (frame: number) => {
+      const fadeInMargin = 15;
+      const fadeOutMargin = 15;
 
-    beats.forEach((beat: StoryBeat, index: number) => {
-      const el = cardRefs.current[index];
-      if (!el) return;
+      beats.forEach((beat: StoryBeat, index: number) => {
+        const el = cardRefs.current[index];
+        if (!el) return;
 
-      const isVisible =
-        frame >= beat.startFrame - fadeInMargin &&
-        frame <= beat.endFrame + fadeOutMargin;
+        const isVisible =
+          frame >= beat.startFrame - fadeInMargin &&
+          frame <= beat.endFrame + fadeOutMargin;
 
-      let opacity = 0;
-      let translateY = 18;
+        let opacity = 0;
+        let translateY = 18;
 
-      if (isVisible) {
-        if (frame < beat.startFrame) {
-          const progress = (frame - (beat.startFrame - fadeInMargin)) / fadeInMargin;
-          opacity = Math.max(0, Math.min(1, progress));
-          translateY = (1 - opacity) * 16;
-        } else if (frame > beat.endFrame) {
-          const progress = (beat.endFrame + fadeOutMargin - frame) / fadeOutMargin;
-          opacity = Math.max(0, Math.min(1, progress));
-          translateY = (1 - opacity) * -16;
-        } else {
-          opacity = 1;
-          translateY = 0;
+        if (isVisible) {
+          if (frame < beat.startFrame) {
+            const progress = (frame - (beat.startFrame - fadeInMargin)) / fadeInMargin;
+            opacity = Math.max(0, Math.min(1, progress));
+            translateY = (1 - opacity) * 16;
+          } else if (frame > beat.endFrame) {
+            const progress = (beat.endFrame + fadeOutMargin - frame) / fadeOutMargin;
+            opacity = Math.max(0, Math.min(1, progress));
+            translateY = (1 - opacity) * -16;
+          } else {
+            opacity = 1;
+            translateY = 0;
+          }
         }
-      }
 
-      el.style.opacity = String(opacity);
-      el.style.transform = `translate3d(0, ${translateY}px, 0)`;
-      el.style.visibility = opacity > 0.01 ? "visible" : "hidden";
-      el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
-    });
-  };
+        el.style.opacity = String(opacity);
+        el.style.transform = `translate3d(0, ${translateY}px, 0)`;
+        el.style.visibility = opacity > 0.01 ? "visible" : "hidden";
+        el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+      });
+    },
+    [beats]
+  );
 
   useImperativeHandle(
     ref,
@@ -62,7 +65,7 @@ export const ScrollStorytelling = forwardRef<
         updateBeatDOM(frame);
       },
     }),
-    [beats]
+    [updateBeatDOM]
   );
 
   if (!portfolioConfig.effects.scrollStorytelling) return null;

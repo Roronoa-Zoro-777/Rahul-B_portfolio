@@ -17,7 +17,7 @@ function waitForServer(host = "127.0.0.1", port = 3020, timeout = 35000) {
   const start = Date.now();
   return new Promise((resolve, reject) => {
     const check = () => {
-      const req = http.get({ host, port, path: "/" }, (res) => {
+      const req = http.get({ host, port, path: "/" }, () => {
         resolve();
       });
       req.on("error", () => {

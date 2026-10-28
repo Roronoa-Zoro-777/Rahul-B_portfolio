@@ -34,7 +34,6 @@ export function ScrollCertificatesShowcase({
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(media.matches);
 
     const onMediaChange = (e: MediaQueryListEvent) => {
       setReducedMotion(e.matches);
@@ -365,7 +364,7 @@ export function ScrollCertificatesShowcase({
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
-                  {modalCert.issuer} // {modalCert.year}
+                  {modalCert.issuer} {"//"} {modalCert.year}
                 </span>
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] text-zinc-400">
                   {certificatesList.findIndex((c) => c.id === modalCert.id) + 1} / {certificatesList.length}

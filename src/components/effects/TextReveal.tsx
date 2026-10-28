@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { portfolioConfig } from "@/config/portfolio.config";
 
 interface TextRevealProps {
@@ -18,16 +18,11 @@ export function TextReveal({
   delayMs = 0,
   trigger = true,
 }: TextRevealProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(!portfolioConfig.effects.textReveal);
   const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!trigger) return;
-
-    if (!portfolioConfig.effects.textReveal) {
-      setIsVisible(true);
-      return;
-    }
+    if (!trigger || !portfolioConfig.effects.textReveal) return;
 
     const timer = setTimeout(() => {
       setIsVisible(true);
@@ -44,7 +39,7 @@ export function TextReveal({
 
   return (
     <Component
-      ref={containerRef as any}
+      ref={containerRef as unknown as React.Ref<HTMLHeadingElement>}
       className={`${className} inline-flex flex-wrap gap-x-[0.28em]`}
     >
       {words.map((word, wordIndex) => (

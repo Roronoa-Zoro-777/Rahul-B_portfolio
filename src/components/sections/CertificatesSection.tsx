@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   ArrowUpRight,
@@ -45,21 +45,21 @@ export function CertificatesSection() {
     setSelectedCert(null);
   };
 
-  const handlePrevCert = () => {
+  const handlePrevCert = useCallback(() => {
     if (!selectedCert) return;
     soundController.playTick();
     const currentIndex = certificatesList.findIndex((c) => c.id === selectedCert.id);
     const prevIndex = (currentIndex - 1 + certificatesList.length) % certificatesList.length;
     setSelectedCert(certificatesList[prevIndex]);
-  };
+  }, [selectedCert]);
 
-  const handleNextCert = () => {
+  const handleNextCert = useCallback(() => {
     if (!selectedCert) return;
     soundController.playTick();
     const currentIndex = certificatesList.findIndex((c) => c.id === selectedCert.id);
     const nextIndex = (currentIndex + 1) % certificatesList.length;
     setSelectedCert(certificatesList[nextIndex]);
-  };
+  }, [selectedCert]);
 
   useEffect(() => {
     if (!selectedCert) return;
@@ -70,7 +70,7 @@ export function CertificatesSection() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [selectedCert]);
+  }, [selectedCert, handlePrevCert, handleNextCert]);
 
   return (
     <section

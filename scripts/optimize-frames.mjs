@@ -33,7 +33,7 @@ const args = process.argv.slice(2).reduce((acc, cur) => {
 const target = args.target || "all";
 const maxConcurrency = Math.max(2, Math.min(8, (navigator?.hardwareConcurrency || 4)));
 
-async function optimizeDirectory({ inputDir, outputDesktopDir, outputMobileDir, totalCount = 600, prefix = "frame_" }) {
+async function optimizeDirectory({ inputDir, outputDesktopDir, outputMobileDir, prefix = "frame_" }) {
   if (!fs.existsSync(inputDir)) {
     console.warn(`[WARN] Input directory not found: ${inputDir}. Skipping.`);
     return;

@@ -117,7 +117,7 @@ export function ProjectsArchive() {
                     <span>{project.category}</span>
                   </div>
                   <span className="font-mono text-xs text-zinc-500">
-                    DOSSIER 0{idx + 1} // {project.year}
+                    DOSSIER 0{idx + 1} {"//"} {project.year}
                   </span>
                 </div>
 
