@@ -191,8 +191,11 @@ export function Navbar() {
               soundController.playShot();
               setMenuOpen((open) => !open);
             }}
-            className={`nav-glass inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent ${menuOpen ? "rotate-90 scale-110" : "rotate-0"
-              }`}
+            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
+              menuOpen
+                ? "border-accent/60 bg-black/85 text-accent shadow-[0_0_20px_rgba(212,162,47,0.4),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-xl rotate-90 scale-105"
+                : "border-white/20 bg-black/65 text-white/90 hover:border-accent hover:text-accent hover:bg-black/80 shadow-[0_8px_32px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-xl"
+            }`}
           >
             {menuOpen ? (
               <X size={20} weight="bold" className="transition-transform duration-300" />
@@ -203,11 +206,23 @@ export function Navbar() {
         </div>
 
         {menuOpen && (
-          <nav className="nav-glass absolute inset-x-6 top-full mt-3 flex flex-col gap-2 rounded-3xl p-3 md:hidden" aria-label="Mobile Navigation">
+          <nav
+            className="absolute inset-x-6 top-full mt-3 flex flex-col gap-2 rounded-3xl border border-white/20 bg-zinc-950/90 p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.2),0_0_35px_rgba(0,0,0,0.8)] backdrop-blur-2xl md:hidden"
+            aria-label="Mobile Navigation"
+          >
+            {/* Header / Dossier tracker in menu */}
+            <div className="flex items-center justify-between border-b border-white/10 px-3 pb-2 font-mono text-[9px] uppercase tracking-[0.22em] text-zinc-400">
+              <span className="flex items-center gap-1.5 text-accent">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(212,162,47,0.8)] animate-pulse" />
+                NAVIGATION // HUD
+              </span>
+              <span>TACTICAL READY</span>
+            </div>
+
             <a
               href="/#systems"
               onClick={(e) => handleScrollTo(e, "systems")}
-              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="rounded-2xl border border-transparent px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Skills
             </a>
@@ -217,8 +232,11 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/projects" ? "bg-accent/15 text-accent" : "text-white/90"
-                }`}
+              className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                pathname === "/projects"
+                  ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
+                  : "border-transparent text-white/90 hover:border-white/15"
+              }`}
             >
               Projects
             </Link>
@@ -228,15 +246,18 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className={`rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/certificates" ? "bg-accent/15 text-accent" : "text-white/90"
-                }`}
+              className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                pathname === "/certificates"
+                  ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
+                  : "border-transparent text-white/90 hover:border-white/15"
+              }`}
             >
               Certificates
             </Link>
             <a
               href="/#contact"
               onClick={(e) => handleScrollTo(e, "contact")}
-              className="flex items-center justify-between rounded-2xl px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-between rounded-2xl border border-transparent px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Contact
               <ArrowUpRight size={14} weight="bold" />
