@@ -314,7 +314,7 @@ export function GlassShatterEffect() {
         x,
         y,
         time: 0,
-        duration: 0.68, // 0.68s sleek tactical chamber reload
+        duration: 0.52, // Snappy 0.52s realistic tactical chamber reload
       });
 
       // Kick off physics loop
@@ -552,7 +552,7 @@ export function GlassShatterEffect() {
         const reload = reloads[r];
         reload.time += dt;
 
-        const totalLife = reload.duration + 0.35; // Active duration + lock flash fadeout
+        const totalLife = reload.duration + 0.28; // Active duration + sleek settle fadeout
         if (reload.time >= totalLife) {
           reloads.splice(r, 1);
           continue;
@@ -561,12 +561,12 @@ export function GlassShatterEffect() {
         const isComplete = reload.time >= reload.duration;
         const progress = Math.min(1, reload.time / reload.duration);
 
-        // Alpha calculation: instantaneous vibrant pop-in (0.05s), then smooth fadeout
+        // Alpha calculation: instantaneous vibrant pop-in (0.04s), then smooth fadeout on lock
         let alpha = 1;
-        if (reload.time < 0.05) {
-          alpha = reload.time / 0.05;
+        if (reload.time < 0.04) {
+          alpha = reload.time / 0.04;
         } else if (isComplete) {
-          const fadeProgress = (reload.time - reload.duration) / 0.35;
+          const fadeProgress = (reload.time - reload.duration) / 0.28;
           alpha = Math.max(0, 1 - fadeProgress);
         }
 
@@ -574,28 +574,30 @@ export function GlassShatterEffect() {
         ctx.translate(reload.x, reload.y);
         ctx.globalAlpha = alpha;
 
-        const baseRadius = 38;
-        const popScale = isComplete ? 1 + (1 - alpha) * 0.18 : 1;
+        // Compact realistic scale: base ring radius is ~17px (total reticle footprint ~40-44px)
+        const baseRadius = 17;
+        const popScale = isComplete ? 1 + (1 - alpha) * 0.12 : 1;
         const radius = baseRadius * popScale;
 
-        // 1. High-Contrast Frosted HUD Backdrop Disc (guarantees 100% visibility over any surface)
+        // 1. Sleek Obsidian Glass Lens Disc (ensures crisp contrast over light or dark backgrounds)
+        const lensRadius = 22 * popScale;
         ctx.beginPath();
-        ctx.arc(0, 0, 48 * popScale, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(6, 13, 22, 0.90)";
-        ctx.shadowColor = isComplete ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 240, 255, 0.75)";
-        ctx.shadowBlur = 18;
+        ctx.arc(0, 0, lensRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(4, 10, 18, 0.85)";
+        ctx.shadowColor = isComplete ? "rgba(255, 255, 255, 0.55)" : "rgba(0, 240, 255, 0.65)";
+        ctx.shadowBlur = 8;
         ctx.fill();
-        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.85)" : "rgba(0, 240, 255, 0.6)";
-        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.75)" : "rgba(0, 240, 255, 0.35)";
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        // 2. Corner Target Brackets [ ]
-        const bracketDist = 53 * popScale;
-        const bracketSize = 8;
-        ctx.strokeStyle = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.lineWidth = 2.2;
+        // 2. High-Tech Precision Corner Reticle Notches [ ]
+        const bracketDist = 24.5 * popScale;
+        const bracketSize = 3.5;
+        ctx.strokeStyle = isComplete ? "#ffffff" : "rgba(0, 240, 255, 0.85)";
+        ctx.lineWidth = 1.2;
         ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 5;
         for (let b = 0; b < 4; b++) {
           const a = (b * Math.PI) / 2 + Math.PI / 4;
           const bx = Math.cos(a) * bracketDist;
@@ -607,52 +609,52 @@ export function GlassShatterEffect() {
           ctx.stroke();
         }
 
-        // 3. Thick Neon Reload Progress Ring
-        // Background track
+        // 3. Razor-Sharp Reload Progress Arc
+        // Background track groove
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
-        ctx.lineWidth = 5;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+        ctx.lineWidth = 1.8;
         ctx.stroke();
 
-        // Sweeping progress arc from 12 o'clock clockwise
+        // Active sweeping arc from 12 o'clock clockwise
         const startAngle = -Math.PI / 2;
         const endAngle = startAngle + progress * Math.PI * 2;
         ctx.beginPath();
         ctx.arc(0, 0, radius, startAngle, endAngle);
         ctx.strokeStyle = isComplete ? "#ffffff" : "#00f0ff";
         ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.shadowBlur = 16;
-        ctx.lineWidth = isComplete ? 5.5 : 5.0;
+        ctx.shadowBlur = isComplete ? 10 : 8;
+        ctx.lineWidth = isComplete ? 2.2 : 2.0;
         ctx.lineCap = "round";
         ctx.stroke();
 
-        // Glowing specular tip bead tracking the progress head
+        // Glowing specular micro-bead at head of arc
         const tipX = Math.cos(endAngle) * radius;
         const tipY = Math.sin(endAngle) * radius;
         ctx.beginPath();
-        ctx.arc(tipX, tipY, 4.5, 0, Math.PI * 2);
+        ctx.arc(tipX, tipY, 1.8, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "#00f0ff";
-        ctx.shadowBlur = 12;
+        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
+        ctx.shadowBlur = 6;
         ctx.fill();
 
-        // 4. Six Chamber Cartridges (revolving cylinder pips)
-        const chamberCount = 6;
-        const chamberRadius = 21 * popScale;
-        const spin = isComplete ? 0 : reload.time * 5.5;
-        for (let c = 0; c < chamberCount; c++) {
-          const ca = (c * Math.PI * 2) / chamberCount + spin;
-          const cx = Math.cos(ca) * chamberRadius;
-          const cy = Math.sin(ca) * chamberRadius;
-          const isLoaded = isComplete || progress >= (c + 1) / chamberCount;
+        // 4. Quad-Cell Arc Reactor Chamber Pips (efficient 4-step power cycle)
+        const cellCount = 4;
+        const cellRadius = 9.5 * popScale;
+        const spin = isComplete ? 0 : reload.time * 4.2;
+        for (let c = 0; c < cellCount; c++) {
+          const ca = (c * Math.PI * 2) / cellCount + spin;
+          const cx = Math.cos(ca) * cellRadius;
+          const cy = Math.sin(ca) * cellRadius;
+          const isCharged = isComplete || progress >= (c + 1) / cellCount;
 
           ctx.beginPath();
-          ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
-          if (isLoaded) {
+          ctx.arc(cx, cy, 1.3, 0, Math.PI * 2);
+          if (isCharged) {
             ctx.fillStyle = isComplete ? "#ffffff" : "#00f0ff";
             ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 5;
           } else {
             ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
             ctx.shadowBlur = 0;
@@ -660,44 +662,66 @@ export function GlassShatterEffect() {
           ctx.fill();
         }
 
-        // Center reticle dot
-        ctx.beginPath();
-        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.shadowBlur = 8;
-        ctx.fill();
+        // 5. Center Reticle Cross / Completion Starburst Glint
+        if (!isComplete) {
+          // Precise 1px micro crosshair
+          ctx.strokeStyle = "rgba(0, 240, 255, 0.75)";
+          ctx.lineWidth = 1;
+          ctx.shadowBlur = 3;
+          ctx.shadowColor = "#00f0ff";
+          ctx.beginPath();
+          ctx.moveTo(-2.5, 0); ctx.lineTo(2.5, 0);
+          ctx.moveTo(0, -2.5); ctx.lineTo(0, 2.5);
+          ctx.stroke();
+        } else {
+          // Magnificent diamond star glint on lock
+          const glintProgress = (reload.time - reload.duration) / 0.28;
+          const glintScale = (1 - glintProgress) * 4.5;
+          ctx.fillStyle = "#ffffff";
+          ctx.shadowColor = "#00f0ff";
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(0, -glintScale);
+          ctx.lineTo(glintScale * 0.35, -glintScale * 0.35);
+          ctx.lineTo(glintScale, 0);
+          ctx.lineTo(glintScale * 0.35, glintScale * 0.35);
+          ctx.lineTo(0, glintScale);
+          ctx.lineTo(-glintScale * 0.35, glintScale * 0.35);
+          ctx.lineTo(-glintScale, 0);
+          ctx.lineTo(-glintScale * 0.35, -glintScale * 0.35);
+          ctx.closePath();
+          ctx.fill();
+        }
 
-        // 5. High-Contrast Tactical Text Pill Badge
-        const badgeY = 64;
-        const badgeW = 108;
-        const badgeH = 22;
-        const badgeR = 6;
-        const bx = -badgeW / 2;
-        const by = badgeY - badgeH / 2;
+        // 6. Compact Micro Monospace Telemetry Badge (efficient, realistic HUD readout)
+        const tagY = 27 * popScale;
+        const tagW = 32;
+        const tagH = 11;
+        const tagR = 3;
+        const tx = -tagW / 2;
+        const ty = tagY - tagH / 2;
 
         ctx.beginPath();
-        ctx.moveTo(bx + badgeR, by);
-        ctx.lineTo(bx + badgeW - badgeR, by);
-        ctx.arcTo(bx + badgeW, by, bx + badgeW, by + badgeR, badgeR);
-        ctx.lineTo(bx + badgeW, by + badgeH - badgeR);
-        ctx.arcTo(bx + badgeW, by + badgeH, bx + badgeW - badgeR, by + badgeH, badgeR);
-        ctx.lineTo(bx + badgeR, by + badgeH);
-        ctx.arcTo(bx, by + badgeH, bx, by + badgeH - badgeR, badgeR);
-        ctx.lineTo(bx, by + badgeR);
-        ctx.arcTo(bx, by, bx + badgeR, by, badgeR);
+        ctx.moveTo(tx + tagR, ty);
+        ctx.lineTo(tx + tagW - tagR, ty);
+        ctx.arcTo(tx + tagW, ty, tx + tagW, ty + tagR, tagR);
+        ctx.lineTo(tx + tagW, ty + tagH - tagR);
+        ctx.arcTo(tx + tagW, ty + tagH, tx + tagW - tagR, ty + tagH, tagR);
+        ctx.lineTo(tx + tagR, ty + tagH);
+        ctx.arcTo(tx, ty + tagH, tx, ty + tagH - tagR, tagR);
+        ctx.lineTo(tx, ty + tagR);
+        ctx.arcTo(tx, ty, tx + tagR, ty, tagR);
         ctx.closePath();
 
-        ctx.fillStyle = "rgba(4, 9, 16, 0.94)";
+        ctx.fillStyle = "rgba(3, 8, 15, 0.92)";
         ctx.fill();
-        ctx.strokeStyle = isComplete ? "#ffffff" : "rgba(0, 240, 255, 0.75)";
-        ctx.lineWidth = 1.6;
+        ctx.strokeStyle = isComplete ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 240, 255, 0.45)";
+        ctx.lineWidth = 0.9;
         ctx.shadowColor = isComplete ? "#ffffff" : "#00f0ff";
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 4;
         ctx.stroke();
 
-        // Crisp bold monospace HUD status text
-        ctx.font = "bold 11px var(--font-geist-mono), 'Courier New', monospace";
+        ctx.font = "bold 7.5px var(--font-geist-mono), 'Courier New', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
@@ -705,24 +729,26 @@ export function GlassShatterEffect() {
           const percent = Math.floor(progress * 100);
           ctx.fillStyle = "#00f0ff";
           ctx.shadowColor = "#00f0ff";
-          ctx.shadowBlur = 10;
-          ctx.fillText(`RELOAD  ${percent}%`, 0, badgeY);
+          ctx.shadowBlur = 6;
+          ctx.fillText(`${percent}%`, 0, tagY + 0.5);
         } else {
           ctx.fillStyle = "#ffffff";
           ctx.shadowColor = "#ffffff";
-          ctx.shadowBlur = 12;
-          ctx.fillText("READY // OK", 0, badgeY);
+          ctx.shadowBlur = 8;
+          ctx.fillText("LOCK", 0, tagY + 0.5);
         }
 
-        // 6. Completion Shockwave Ring
+        // 7. Micro Completion Shockwave Pulse
         if (isComplete) {
-          const flashProgress = (reload.time - reload.duration) / 0.35;
-          const shockRadius = (48 + flashProgress * 28) * popScale;
-          const shockAlpha = (1 - flashProgress) * 0.9;
+          const flashProgress = (reload.time - reload.duration) / 0.28;
+          const shockRadius = (radius + flashProgress * 12) * popScale;
+          const shockAlpha = (1 - flashProgress) * 0.85;
           ctx.beginPath();
           ctx.arc(0, 0, shockRadius, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(255, 255, 255, ${shockAlpha})`;
-          ctx.lineWidth = 2.5 * (1 - flashProgress);
+          ctx.lineWidth = 1.5 * (1 - flashProgress);
+          ctx.shadowColor = "#00f0ff";
+          ctx.shadowBlur = 6;
           ctx.stroke();
         }
 
