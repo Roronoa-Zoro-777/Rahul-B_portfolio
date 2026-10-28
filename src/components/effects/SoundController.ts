@@ -20,7 +20,7 @@ class SoundManager {
       window.addEventListener("pointerdown", triggerSound, { passive: true });
       window.addEventListener("click", triggerSound, { passive: true });
 
-      // Start preloading gunshot audio files in background
+      // Start preloading clean rifle sound files
       this.preloadAudio();
     }
   }
@@ -43,17 +43,17 @@ class SoundManager {
   }
 
   /**
-   * Preload the 4 realistic gunshot sound files into memory for instant 0ms playback
+   * Preload clean rifle sound files into memory for instant playback
    */
   private async preloadAudio() {
     if (this.isPreloading || typeof window === "undefined") return;
     this.isPreloading = true;
 
     const urls = [
-      "/sounds/gunshot-1.wav",
-      "/sounds/gunshot-2.wav",
-      "/sounds/gunshot-3.wav",
-      "/sounds/gunshot-4.wav",
+      "/sounds/gunshot-1.wav?v=2",
+      "/sounds/gunshot-2.wav?v=2",
+      "/sounds/gunshot-3.wav?v=2",
+      "/sounds/gunshot-4.wav?v=2",
     ];
 
     try {
@@ -118,9 +118,9 @@ class SoundManager {
   }
 
   /**
-   * High-Fidelity Realistic Gunshot Audio on Click
-   * Uses real multi-layer gunshot audio samples with heavy bass punch,
-   * high volume, and distinct sound variation on every click.
+   * Clean, Smooth Tactical Rifle Shot on Click
+   * Crisp firing-pin transient with warm, deep acoustic bass thud.
+   * Completely clean with zero static noise or harsh distortion.
    */
   public playShot() {
     if (!this.enabled) return;
@@ -133,36 +133,41 @@ class SoundManager {
       const ctx = this.initContext();
       if (!ctx) return;
 
-      // Ensure audio files are loaded
       if (this.gunshotBuffers.length === 0) {
         this.preloadAudio();
       }
 
       const now = ctx.currentTime;
 
-      // Master Compressor to maximize loudness and thunderous bass without distortion
+      // Master Compressor for smooth, controlled loudness
       const compressor = ctx.createDynamicsCompressor();
-      compressor.threshold.setValueAtTime(-14, now);
-      compressor.knee.setValueAtTime(6, now);
-      compressor.ratio.setValueAtTime(5, now);
-      compressor.attack.setValueAtTime(0.001, now);
-      compressor.release.setValueAtTime(0.18, now);
+      compressor.threshold.setValueAtTime(-12, now);
+      compressor.knee.setValueAtTime(8, now);
+      compressor.ratio.setValueAtTime(4, now);
+      compressor.attack.setValueAtTime(0.002, now);
+      compressor.release.setValueAtTime(0.12, now);
 
-      // Bass EQ boost around 90-180Hz for chest-thumping gunshot punch
-      const bassBoost = ctx.createBiquadFilter();
-      bassBoost.type = "peaking";
-      bassBoost.frequency.setValueAtTime(120, now);
-      bassBoost.gain.setValueAtTime(4.5, now);
-      bassBoost.Q.setValueAtTime(1.4, now);
+      // Warm low-end peak (110Hz) for deep solid rifle punch
+      const warmEq = ctx.createBiquadFilter();
+      warmEq.type = "peaking";
+      warmEq.frequency.setValueAtTime(110, now);
+      warmEq.gain.setValueAtTime(3.0, now);
+      warmEq.Q.setValueAtTime(1.2, now);
+
+      // Gentle smooth lowpass (3800Hz) to remove any digital harshness
+      const smoothFilter = ctx.createBiquadFilter();
+      smoothFilter.type = "lowpass";
+      smoothFilter.frequency.setValueAtTime(3800, now);
 
       const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(1.15, now); // High volume punch
+      masterGain.gain.setValueAtTime(1.0, now);
 
-      bassBoost.connect(compressor);
+      warmEq.connect(smoothFilter);
+      smoothFilter.connect(compressor);
       compressor.connect(masterGain);
       masterGain.connect(ctx.destination);
 
-      // Pick next gunshot variation (ensuring different sound on each click)
+      // Play pre-rendered clean rifle variation
       if (this.gunshotBuffers.length > 0) {
         let nextIndex = Math.floor(Math.random() * this.gunshotBuffers.length);
         if (nextIndex === this.lastVariationIndex && this.gunshotBuffers.length > 1) {
@@ -174,15 +179,15 @@ class SoundManager {
         const source = ctx.createBufferSource();
         source.buffer = buffer;
 
-        // Subtle randomized pitch shifting for organic realism
-        const pitchShift = 0.94 + Math.random() * 0.12; // 0.94x to 1.06x
+        // Subtle randomized micro-pitch (0.96x to 1.04x) for natural realism
+        const pitchShift = 0.96 + Math.random() * 0.08;
         source.playbackRate.setValueAtTime(pitchShift, now);
 
-        source.connect(bassBoost);
+        source.connect(warmEq);
         source.start(now);
       } else {
-        // Instant acoustic fallback if buffers are still decoding
-        this.playSynthesizedGunshot(ctx, compressor);
+        // Immediate clean procedural rifle fallback
+        this.playProceduralCleanRifle(ctx, warmEq);
       }
     } catch {
       // AudioContext policy fallback
@@ -190,36 +195,48 @@ class SoundManager {
   }
 
   /**
-   * Procedural acoustic gunshot backup
+   * Clean procedural rifle backup (no noise, pure acoustic snap and warm thud)
    */
-  private playSynthesizedGunshot(ctx: AudioContext, destination: AudioNode) {
+  private playProceduralCleanRifle(ctx: AudioContext, destination: AudioNode) {
     const now = ctx.currentTime;
 
-    // Supersonic crack
-    const oscCrack = ctx.createOscillator();
-    const gainCrack = ctx.createGain();
-    oscCrack.type = "sawtooth";
-    oscCrack.frequency.setValueAtTime(1800, now);
-    oscCrack.frequency.exponentialRampToValueAtTime(140, now + 0.04);
-    gainCrack.gain.setValueAtTime(0.9, now);
-    gainCrack.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
-    oscCrack.connect(gainCrack);
-    gainCrack.connect(destination);
-    oscCrack.start(now);
-    oscCrack.stop(now + 0.045);
+    // 1. Crisp firing pin click (damped sine sweep 1200Hz -> 400Hz, 8ms)
+    const oscClick = ctx.createOscillator();
+    const gainClick = ctx.createGain();
+    oscClick.type = "sine";
+    oscClick.frequency.setValueAtTime(1200, now);
+    oscClick.frequency.exponentialRampToValueAtTime(400, now + 0.008);
+    gainClick.gain.setValueAtTime(0.5, now);
+    gainClick.gain.exponentialRampToValueAtTime(0.0001, now + 0.010);
+    oscClick.connect(gainClick);
+    gainClick.connect(destination);
+    oscClick.start(now);
+    oscClick.stop(now + 0.012);
 
-    // Deep explosive thud
-    const oscThud = ctx.createOscillator();
-    const gainThud = ctx.createGain();
-    oscThud.type = "triangle";
-    oscThud.frequency.setValueAtTime(220, now);
-    oscThud.frequency.exponentialRampToValueAtTime(45, now + 0.18);
-    gainThud.gain.setValueAtTime(0.95, now);
-    gainThud.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
-    oscThud.connect(gainThud);
-    gainThud.connect(destination);
-    oscThud.start(now);
-    oscThud.stop(now + 0.23);
+    // 2. Smooth deep rifle thud (180Hz -> 50Hz, 120ms)
+    const oscBass = ctx.createOscillator();
+    const gainBass = ctx.createGain();
+    oscBass.type = "triangle";
+    oscBass.frequency.setValueAtTime(180, now);
+    oscBass.frequency.exponentialRampToValueAtTime(50, now + 0.12);
+    gainBass.gain.setValueAtTime(0.85, now);
+    gainBass.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    oscBass.connect(gainBass);
+    gainBass.connect(destination);
+    oscBass.start(now);
+    oscBass.stop(now + 0.15);
+
+    // 3. Chamber resonance (310Hz body "thock")
+    const oscChamber = ctx.createOscillator();
+    const gainChamber = ctx.createGain();
+    oscChamber.type = "sine";
+    oscChamber.frequency.setValueAtTime(310, now);
+    gainChamber.gain.setValueAtTime(0.35, now);
+    gainChamber.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+    oscChamber.connect(gainChamber);
+    gainChamber.connect(destination);
+    oscChamber.start(now);
+    oscChamber.stop(now + 0.06);
   }
 }
 
