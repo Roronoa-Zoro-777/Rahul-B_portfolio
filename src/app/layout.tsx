@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
@@ -8,18 +8,77 @@ import { CinematicOverlay } from "@/components/effects/CinematicOverlay";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  fallback: ["monospace", "Courier New"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0a0a0b",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "Rahul B — Data Analytics Portfolio",
+  title: {
+    default: "Rahul B — Data Analytics Portfolio",
+    template: "%s | Rahul B",
+  },
   description:
-    "Rahul B's data analytics portfolio: tactical image sequences, skills, tools, projects, and contact details.",
-  metadataBase: new URL("http://localhost:3000"),
+    "Data Analyst portfolio of Rahul B: turning complex data into actionable direction with SQL, Python, Power BI, and predictive modeling.",
+  keywords: [
+    "Rahul B",
+    "Data Analyst",
+    "Data Scientist",
+    "Business Intelligence",
+    "Power BI",
+    "SQL",
+    "Python",
+    "Machine Learning",
+    "Tableau",
+    "Portfolio",
+  ],
+  authors: [{ name: "Rahul B" }],
+  creator: "Rahul B",
+  metadataBase: new URL("https://rahulb.dev"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://rahulb.dev",
+    siteName: "Rahul B Portfolio",
+    title: "Rahul B — Data Analytics Portfolio",
+    description:
+      "Turning complex data into actionable direction with SQL, Python, Power BI dashboards, and predictive modeling.",
+    images: [
+      {
+        url: "/certificates/cert-1.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Rahul B Portfolio Preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rahul B — Data Analytics Portfolio",
+    description:
+      "Turning complex data into actionable direction with SQL, Python, Power BI dashboards, and predictive modeling.",
+    images: ["/certificates/cert-1.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

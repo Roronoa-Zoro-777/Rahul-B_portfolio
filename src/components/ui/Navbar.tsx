@@ -117,7 +117,7 @@ export function Navbar() {
             href="/"
             onMouseEnter={() => soundController.playTick()}
             onClick={() => soundController.playShot()}
-            className="flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-foreground"
+            className="flex items-center gap-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full px-2 py-1"
           >
             <span
               aria-hidden
@@ -127,13 +127,13 @@ export function Navbar() {
           </Link>
         </MagneticButton>
 
-        <nav className="hidden items-center gap-3 md:flex">
+        <nav className="hidden items-center gap-3 md:flex" aria-label="Main Navigation">
           <MagneticButton strength={0.25}>
             <a
               href="/#systems"
               onMouseEnter={() => soundController.playTick()}
               onClick={(e) => handleScrollTo(e, "systems")}
-              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer"
+              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Skills
             </a>
@@ -144,7 +144,7 @@ export function Navbar() {
               href="/projects"
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)]"
+              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Projects
             </a>
@@ -155,7 +155,7 @@ export function Navbar() {
               href="/certificates"
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)]"
+              className="nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Certificates
             </Link>
@@ -166,7 +166,7 @@ export function Navbar() {
               href="/#contact"
               onMouseEnter={() => soundController.playTick()}
               onClick={(e) => handleScrollTo(e, "contact")}
-              className="nav-glass group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] active:translate-y-[1px] cursor-pointer"
+              className="nav-glass group relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] active:translate-y-[1px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Contact
               <ArrowUpRight
@@ -204,11 +204,11 @@ export function Navbar() {
         </div>
 
         {menuOpen && (
-          <nav className="nav-glass absolute inset-x-6 top-full mt-3 flex flex-col gap-2 rounded-3xl p-3 md:hidden">
+          <nav className="nav-glass absolute inset-x-6 top-full mt-3 flex flex-col gap-2 rounded-3xl p-3 md:hidden" aria-label="Mobile Navigation">
             <a
               href="/#systems"
               onClick={(e) => handleScrollTo(e, "systems")}
-              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer"
+              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Skills
             </a>
@@ -218,7 +218,7 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent"
+              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Projects
             </a>
@@ -228,14 +228,14 @@ export function Navbar() {
                 soundController.playShot();
                 setMenuOpen(false);
               }}
-              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent"
+              className="rounded-2xl px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-white/90 transition-colors hover:bg-white/[0.1] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Certificates
             </Link>
             <a
               href="/#contact"
               onClick={(e) => handleScrollTo(e, "contact")}
-              className="flex items-center justify-between rounded-2xl px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer"
+              className="flex items-center justify-between rounded-2xl px-4 py-3 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-foreground transition-colors hover:bg-white/[0.1] hover:text-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Contact
               <ArrowUpRight size={14} weight="bold" />

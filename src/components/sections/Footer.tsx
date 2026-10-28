@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import {
   ArrowUpRight,
+  Check,
+  Copy,
   Envelope,
   GithubLogo,
   LinkedinLogo,
@@ -12,6 +15,17 @@ import { soundController } from "@/components/effects/SoundController";
 import { TargetLockCard } from "@/components/effects/TargetLockCard";
 
 export function Footer() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyEmail = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText("rahulbavigadda2004@gmail.com");
+    soundController.playShot();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
+  };
+
   return (
     <footer
       id="contact"
@@ -54,23 +68,45 @@ export function Footer() {
             </TargetLockCard>
           </div>
 
-          <nav className="grid items-stretch gap-4 sm:grid-cols-2 md:grid-cols-2">
+          <nav className="grid items-stretch gap-4 sm:grid-cols-2 md:grid-cols-2" aria-label="Contact links">
             <TargetLockCard>
-              <a
-                href="mailto:rahulbavigadda2004@gmail.com"
-                onMouseEnter={() => soundController.playTick()}
-                onClick={() => soundController.playShot()}
-                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40"
-              >
-                <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
-                  <Envelope size={16} weight="duotone" className="text-[#EA4335]" />
-                  Email
-                  <ArrowUpRight size={11} weight="bold" className="ml-1 inline-block align-baseline" />
-                </span>
-                <span className="break-all text-left font-mono text-xs font-bold tracking-[0.04em] text-zinc-300">
-                  rahulbavigadda2004@gmail.com
-                </span>
-              </a>
+              <div className="relative h-full">
+                <a
+                  href="mailto:rahulbavigadda2004@gmail.com"
+                  onMouseEnter={() => soundController.playTick()}
+                  onClick={() => soundController.playShot()}
+                  className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label="Send email to rahulbavigadda2004@gmail.com"
+                >
+                  <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
+                    <Envelope size={16} weight="duotone" className="text-[#EA4335]" />
+                    Email
+                    <ArrowUpRight size={11} weight="bold" className="ml-1 inline-block align-baseline" />
+                  </span>
+                  <span className="break-all text-left font-mono text-xs font-bold tracking-[0.04em] text-zinc-300">
+                    rahulbavigadda2004@gmail.com
+                  </span>
+                </a>
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  title="Copy email to clipboard"
+                  aria-label="Copy email address"
+                  className="absolute right-4 top-4 flex h-7 items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-2.5 font-mono text-[10px] text-zinc-300 transition-all hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={12} weight="bold" className="text-emerald-400" />
+                      <span className="text-emerald-400">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={12} weight="bold" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </TargetLockCard>
 
             <TargetLockCard>
@@ -78,7 +114,8 @@ export function Footer() {
                 href="tel:+917975455934"
                 onMouseEnter={() => soundController.playTick()}
                 onClick={() => soundController.playShot()}
-                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40"
+                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-label="Call +91 7975455934"
               >
                 <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
                   <Phone size={16} weight="duotone" className="text-[#22C55E]" />
@@ -98,7 +135,8 @@ export function Footer() {
                 rel="noreferrer"
                 onMouseEnter={() => soundController.playTick()}
                 onClick={() => soundController.playShot()}
-                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40"
+                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-label="Visit LinkedIn profile"
               >
                 <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
                   <LinkedinLogo size={16} weight="duotone" className="text-[#0A66C2]" />
@@ -118,7 +156,8 @@ export function Footer() {
                 rel="noreferrer"
                 onMouseEnter={() => soundController.playTick()}
                 onClick={() => soundController.playShot()}
-                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40"
+                className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-label="Visit GitHub profile"
               >
                 <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
                   <GithubLogo size={16} weight="duotone" className="text-[#F5F5F5]" />
@@ -135,7 +174,7 @@ export function Footer() {
 
         <div className="flex flex-col gap-2 border-t border-red-300/15 pt-6 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-zinc-400 md:flex-row md:items-center md:justify-between">
           <span>Rahul B &nbsp;&middot;&nbsp; Data Analytics Portfolio</span>
-          <span>Tactical Online // Available for Opportunities</span>
+          <span className="text-accent">Tactical Online // Available for Opportunities</span>
         </div>
       </div>
     </footer>
