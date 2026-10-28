@@ -127,6 +127,30 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-3 md:flex" aria-label="Main Navigation">
           <MagneticButton strength={0.25}>
+            <Link
+              href="/"
+              onClick={(e) => {
+                soundController.playShot();
+                if (pathname === "/") {
+                  e.preventDefault();
+                  if (lenis) {
+                    lenis.scrollTo(0, { duration: 1.2 });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }
+              }}
+              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                pathname === "/"
+                  ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
+                  : "text-white/90"
+              }`}
+            >
+              Home
+            </Link>
+          </MagneticButton>
+
+          <MagneticButton strength={0.25}>
             <a
               href="/#systems"
               onMouseEnter={() => soundController.playTick()}
@@ -218,6 +242,29 @@ export function Navbar() {
               </span>
               <span>TACTICAL READY</span>
             </div>
+
+            <Link
+              href="/"
+              onClick={(e) => {
+                soundController.playShot();
+                setMenuOpen(false);
+                if (pathname === "/") {
+                  e.preventDefault();
+                  if (lenis) {
+                    lenis.scrollTo(0, { duration: 1.2 });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }
+              }}
+              className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                pathname === "/"
+                  ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
+                  : "border-transparent text-white/90 hover:border-white/15"
+              }`}
+            >
+              Home
+            </Link>
 
             <a
               href="/#systems"

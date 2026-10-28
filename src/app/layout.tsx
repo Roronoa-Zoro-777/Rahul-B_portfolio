@@ -4,6 +4,7 @@ import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { CustomCrosshair } from "@/components/effects/CustomCrosshair";
 import { CinematicOverlay } from "@/components/effects/CinematicOverlay";
+import { GlassShatterEffect } from "@/components/effects/GlassShatterEffect";
 import { QuickNavHud } from "@/components/ui/QuickNavHud";
 import { JsonLd } from "@/components/seo/JsonLd";
 
@@ -97,6 +98,7 @@ export default function RootLayout({
           {/* Global Polished Effects */}
           <CinematicOverlay />
           <CustomCrosshair />
+          <GlassShatterEffect />
           {children}
           <QuickNavHud />
         </SmoothScrollProvider>
