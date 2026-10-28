@@ -22,8 +22,9 @@ class SoundManager {
         this.playShot();
       };
 
-      // Trigger the exact sound on click / tap
-      window.addEventListener("pointerdown", triggerSound, { passive: true });
+      // Trigger the exact sound on click / tap / right-click
+      window.addEventListener("pointerdown", triggerSound, { capture: true, passive: true });
+      window.addEventListener("contextmenu", triggerSound, { capture: true });
     }
   }
 
