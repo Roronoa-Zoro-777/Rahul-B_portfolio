@@ -23,13 +23,14 @@ export function SoundToggle() {
         type="button"
         onClick={handleToggle}
         onMouseEnter={() => soundController.playTick()}
-        className={`nav-glass flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
+        className={`nav-glass flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer ${
           enabled
             ? "border-accent/40 text-accent shadow-[0_0_12px_rgba(212,162,47,0.3)]"
             : "text-zinc-400 hover:text-white"
         }`}
+        aria-pressed={enabled}
         aria-label={enabled ? "Disable tactical audio" : "Enable tactical audio"}
-        title="Toggle HUD Audio"
+        title={enabled ? "Disable tactical audio" : "Enable tactical audio"}
       >
         {enabled ? (
           <SpeakerHigh size={14} weight="bold" className="text-accent" />

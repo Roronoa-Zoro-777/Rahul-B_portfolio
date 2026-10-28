@@ -132,11 +132,12 @@ export function Footer() {
               <a
                 href="https://www.linkedin.com/in/rahul-b-5780ba354/"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 onMouseEnter={() => soundController.playTick()}
                 onClick={() => soundController.playShot()}
                 className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                aria-label="Visit LinkedIn profile"
+                aria-label="Visit Rahul B's LinkedIn profile"
+                title="LinkedIn Profile"
               >
                 <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
                   <LinkedinLogo size={16} weight="duotone" className="text-[#0A66C2]" />
@@ -153,11 +154,12 @@ export function Footer() {
               <a
                 href="https://github.com/Roronoa-Zoro-777"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 onMouseEnter={() => soundController.playTick()}
                 onClick={() => soundController.playShot()}
                 className="contact-glass group flex h-full min-h-[112px] flex-col items-start gap-1 rounded-3xl p-5 transition-all duration-300 hover:bg-white/[0.12] hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                aria-label="Visit GitHub profile"
+                aria-label="Visit Rahul B's GitHub profile"
+                title="GitHub Profile"
               >
                 <span className="flex items-center gap-2 font-sans text-[13px] font-bold text-white transition-colors group-hover:text-accent">
                   <GithubLogo size={16} weight="duotone" className="text-[#F5F5F5]" />
