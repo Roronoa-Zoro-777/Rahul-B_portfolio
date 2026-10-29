@@ -28,7 +28,7 @@ export function FeaturedProjects() {
           </div>
 
           <Link
-            href="/projects"
+            href="/projects/"
             onMouseEnter={() => soundController.playTick()}
             onClick={() => soundController.playShot()}
             className="group inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/[0.05] px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-[0.18em] text-white transition-all hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:self-auto"
@@ -107,7 +107,7 @@ export function FeaturedProjects() {
                       </a>
                     )}
                     <Link
-                      href="/projects"
+                      href="/projects/"
                       className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 font-mono text-xs font-bold uppercase text-black hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       Dossier <ArrowUpRight size={13} weight="bold" />

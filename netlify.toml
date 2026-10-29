@@ -17,3 +17,18 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  from = "/projects"
+  to = "/projects/"
+  status = 301
+
+[[redirects]]
+  from = "/certificates"
+  to = "/certificates/"
+  status = 301
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

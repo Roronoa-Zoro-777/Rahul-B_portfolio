@@ -175,7 +175,7 @@ export function Navbar() {
 
           <MagneticButton strength={0.25}>
             <Link
-              href="/projects"
+              href="/projects/"
               prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
@@ -190,7 +190,7 @@ export function Navbar() {
 
           <MagneticButton strength={0.25}>
             <Link
-              href="/certificates"
+              href="/certificates/"
               prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
@@ -277,7 +277,7 @@ export function Navbar() {
               Skills
             </Link>
             <Link
-              href="/projects"
+              href="/projects/"
               prefetch={true}
               onClick={() => {
                 soundController.playShot();
@@ -292,7 +292,7 @@ export function Navbar() {
               Projects
             </Link>
             <Link
-              href="/certificates"
+              href="/certificates/"
               prefetch={true}
               onClick={() => {
                 soundController.playShot();
