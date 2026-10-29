@@ -18,6 +18,10 @@ export function Navbar() {
   const router = useRouter();
   const lenis = useLenis();
 
+  const isHome = pathname === "/" || pathname === "";
+  const isProjects = pathname.startsWith("/projects");
+  const isCertificates = pathname.startsWith("/certificates");
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
@@ -66,7 +70,7 @@ export function Navbar() {
     soundController.playShot();
     setMenuOpen(false);
 
-    if (pathname === "/") {
+    if (isHome) {
       const el = document.getElementById(targetId);
       if (el) {
         if (lenis) {
@@ -84,7 +88,7 @@ export function Navbar() {
   const handleScrollToHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     soundController.playShot();
     setMenuOpen(false);
-    if (pathname === "/") {
+    if (isHome) {
       e.preventDefault();
       if (lenis) {
         lenis.scrollTo(0, { duration: 1.2 });
@@ -118,7 +122,7 @@ export function Navbar() {
     }
     window.addEventListener("hashchange", scrollTarget);
     return () => window.removeEventListener("hashchange", scrollTarget);
-  }, [lenis]);
+  }, [lenis, pathname]);
 
   return (
     <header
@@ -149,7 +153,7 @@ export function Navbar() {
               href="/"
               onClick={handleScrollToHome}
               className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/"
+                isHome
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "text-white/90"
               }`}
@@ -175,7 +179,7 @@ export function Navbar() {
               prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/projects"
+              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isProjects
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "text-white/90"
                 }`}
@@ -190,7 +194,7 @@ export function Navbar() {
               prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
-              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/certificates"
+              className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isCertificates
                   ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "text-white/90"
                 }`}
@@ -257,7 +261,7 @@ export function Navbar() {
               href="/"
               onClick={handleScrollToHome}
               className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/"
+                isHome
                   ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "border-transparent text-white/90 hover:border-white/15"
               }`}
@@ -280,7 +284,7 @@ export function Navbar() {
                 setMenuOpen(false);
               }}
               className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/projects"
+                isProjects
                   ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "border-transparent text-white/90 hover:border-white/15"
               }`}
@@ -295,7 +299,7 @@ export function Navbar() {
                 setMenuOpen(false);
               }}
               className={`rounded-2xl border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all hover:bg-white/[0.08] hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                pathname === "/certificates"
+                isCertificates
                   ? "border-accent/50 bg-accent/15 text-accent shadow-[0_0_16px_rgba(212,162,47,0.25)]"
                   : "border-transparent text-white/90 hover:border-white/15"
               }`}

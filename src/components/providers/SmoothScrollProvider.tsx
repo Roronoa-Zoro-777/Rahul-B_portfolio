@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -25,6 +26,20 @@ type Props = { children: ReactNode };
 
 export function SmoothScrollProvider({ children }: Props) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
+  const pathname = usePathname();
+
+  // Scroll to top and refresh triggers on route change
+  useEffect(() => {
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [pathname, lenis]);
 
   useEffect(() => {
     // On mobile touch devices, use 100% native momentum touch scrolling for zero-lag swipe gestures

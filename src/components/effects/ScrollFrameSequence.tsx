@@ -209,14 +209,10 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
         const img = new Image();
         img.src = resolveFrameUrl(clamped);
 
-        const onDone = async () => {
+        const onDone = () => {
           pending.delete(clamped);
-          try {
-            if ("decode" in img) {
-              await img.decode();
-            }
-          } catch {
-            // Safe fallback on unsupported formats
+          if ("decode" in img) {
+            img.decode().catch(() => {});
           }
           loaded.add(clamped);
           cache.set(clamped, img);
