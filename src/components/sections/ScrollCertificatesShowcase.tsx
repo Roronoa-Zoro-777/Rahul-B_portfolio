@@ -255,7 +255,7 @@ export function ScrollCertificatesShowcase({
         extension=".webp"
         totalFrames={totalFrames}
         scrollDistanceVh={scrollDistanceVh}
-        lerpSpeed={0.12}
+        lerpSpeed={0.28}
         onScrollProgress={handleScrollProgress}
         overlayOpacity={0.3}
       >

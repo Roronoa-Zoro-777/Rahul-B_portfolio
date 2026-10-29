@@ -770,9 +770,43 @@ export function GlassShatterEffect() {
       }
     };
 
-    // Capture-phase event handlers catch left, right, and touch clicks anywhere
+    // Gesture-aware click & touch handlers: allow smooth mobile swiping without accidental shatter/reload
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isSwiping = false;
+
     const handlePointerDown = (e: PointerEvent) => {
-      triggerVideoGameShatter(e.clientX, e.clientY);
+      if (e.pointerType === "touch") {
+        touchStartX = e.clientX;
+        touchStartY = e.clientY;
+        touchStartTime = performance.now();
+        isSwiping = false;
+        return; // Defer touch: wait to determine if user is swiping or tapping
+      }
+      if (e.button === 0 || e.button === 2) {
+        triggerVideoGameShatter(e.clientX, e.clientY);
+      }
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" && !isSwiping) {
+        const dist = Math.hypot(e.clientX - touchStartX, e.clientY - touchStartY);
+        if (dist > 10) {
+          isSwiping = true;
+        }
+      }
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (e.pointerType === "touch") {
+        const dist = Math.hypot(e.clientX - touchStartX, e.clientY - touchStartY);
+        const elapsed = performance.now() - touchStartTime;
+        // Only trigger on an intentional stationary tap (< 12px movement, < 350ms duration)
+        if (!isSwiping && dist < 12 && elapsed < 350) {
+          triggerVideoGameShatter(e.clientX, e.clientY);
+        }
+      }
     };
 
     const handleContextMenu = (e: MouseEvent) => {
@@ -784,6 +818,14 @@ export function GlassShatterEffect() {
       capture: true,
       passive: true,
     });
+    window.addEventListener("pointermove", handlePointerMove, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("pointerup", handlePointerUp, {
+      capture: true,
+      passive: true,
+    });
     window.addEventListener("contextmenu", handleContextMenu, {
       capture: true,
     });
@@ -791,6 +833,12 @@ export function GlassShatterEffect() {
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointerdown", handlePointerDown, {
+        capture: true,
+      });
+      window.removeEventListener("pointermove", handlePointerMove, {
+        capture: true,
+      });
+      window.removeEventListener("pointerup", handlePointerUp, {
         capture: true,
       });
       window.removeEventListener("contextmenu", handleContextMenu, {

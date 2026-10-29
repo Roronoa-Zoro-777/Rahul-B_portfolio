@@ -277,16 +277,22 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
   );
 
   /**
-   * Background idle loader to prefetch all 600 frames into memory
+   * Gentle background idle loader (runs only during idle to avoid saturating network for page navigation)
    */
   useEffect(() => {
     let isCancelled = false;
-    let nextToLoad = initialBatchSize + 1;
+    // On mobile devices, rely purely on predictive scroll loading (requestSurroundingFrames)
+    // to save battery and keep the network connection clear for instantaneous page navigation
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return;
+    }
+
+    let nextToLoad = 18;
 
     const loadNextChunk = () => {
       if (isCancelled || nextToLoad > totalFrames) return;
 
-      const chunkLimit = Math.min(totalFrames, nextToLoad + 12);
+      const chunkLimit = Math.min(totalFrames, nextToLoad + 4);
       for (let f = nextToLoad; f <= chunkLimit; f++) {
         if (!loadedFramesRef.current.has(f) && !pendingLoadsRef.current.has(f)) {
           loadSingleFrame(f);
@@ -298,19 +304,19 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
         if ("requestIdleCallback" in window) {
           (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(loadNextChunk);
         } else {
-          setTimeout(loadNextChunk, 35);
+          setTimeout(loadNextChunk, 200);
         }
       }
     };
 
-    // Begin background preloading 300ms after mount
-    const timer = setTimeout(loadNextChunk, 300);
+    // Begin gentle background idle preloading 2.5s after mount
+    const timer = setTimeout(loadNextChunk, 2500);
 
     return () => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [totalFrames, initialBatchSize, loadSingleFrame]);
+  }, [totalFrames, loadSingleFrame]);
 
   /**
    * Resize Canvas Backing Store (Optimized for High-DPI & Mobile)
@@ -406,24 +412,22 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     let isCancelled = false;
     let loadedCount = 0;
 
-    // 1. Immediate Frame 1 loading
+    // 1. Immediate Frame 1 loading - unlock canvas display instantaneously
     loadSingleFrame(1).then((firstImg) => {
       if (isCancelled || !firstImg) return;
       renderDrawable(firstImg);
       lastRenderedFrameRef.current = 1;
+      setInitialReady(true);
     });
 
-    // 2. Initial batch preloading
-    const initialBatch = Math.min(totalFrames, initialBatchSize);
+    // 2. Fast initial batch: 6 frames on mobile, 14 on desktop to keep network bandwidth clear
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const initialBatch = Math.min(totalFrames, isMobile ? 6 : Math.min(14, initialBatchSize));
     for (let f = 1; f <= initialBatch; f++) {
       loadSingleFrame(f).then(() => {
         if (isCancelled) return;
         loadedCount++;
         setLoadPercent(Math.round((loadedCount / initialBatch) * 100));
-
-        if (loadedCount >= Math.min(10, initialBatch)) {
-          setInitialReady(true);
-        }
       });
     }
 

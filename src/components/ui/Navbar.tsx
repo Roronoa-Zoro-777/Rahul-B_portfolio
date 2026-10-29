@@ -42,6 +42,7 @@ export function Navbar() {
     window.addEventListener("resize", measureHero, { passive: true });
 
     const updateBattery = () => {
+      if (typeof window !== "undefined" && window.innerWidth < 768) return;
       if (heroScrollable <= 0) return;
       const progress = Math.min(1, Math.max(0, (window.scrollY - heroTop) / heroScrollable));
       const battery = Math.max(0, Math.round((1 - progress) * 100));
@@ -171,6 +172,7 @@ export function Navbar() {
           <MagneticButton strength={0.25}>
             <Link
               href="/projects"
+              prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
               className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/projects"
@@ -185,6 +187,7 @@ export function Navbar() {
           <MagneticButton strength={0.25}>
             <Link
               href="/certificates"
+              prefetch={true}
               onMouseEnter={() => soundController.playTick()}
               onClick={() => soundController.playShot()}
               className={`nav-glass relative inline-flex items-center rounded-full px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.24em] transition-all duration-300 hover:scale-105 hover:bg-white/[0.1] hover:text-accent hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${pathname === "/certificates"
@@ -271,6 +274,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/projects"
+              prefetch={true}
               onClick={() => {
                 soundController.playShot();
                 setMenuOpen(false);
@@ -285,6 +289,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/certificates"
+              prefetch={true}
               onClick={() => {
                 soundController.playShot();
                 setMenuOpen(false);
@@ -308,7 +313,7 @@ export function Navbar() {
           </nav>
         )}
 
-        <div className={`nav-battery nav-glass absolute right-6 top-full mt-2 flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent transition-all duration-300 md:right-8 ${batteryVisible ? "opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}>
+        <div className={`nav-battery nav-glass absolute right-6 top-full mt-2 hidden md:flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent transition-all duration-300 md:right-8 ${batteryVisible ? "opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}>
           <span>Battery</span>
           <span className="battery-shell" aria-hidden>
             <span className="battery-fill" style={{ width: `${batteryLevel}%` }} />

@@ -27,6 +27,21 @@ export function SmoothScrollProvider({ children }: Props) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
   useEffect(() => {
+    // On mobile touch devices, use 100% native momentum touch scrolling for zero-lag swipe gestures
+    const isTouchDevice =
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+    if (isTouchDevice) {
+      const onNativeScroll = () => {
+        ScrollTrigger.update();
+      };
+      window.addEventListener("scroll", onNativeScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", onNativeScroll);
+      };
+    }
+
     const root = document.documentElement;
     root.classList.add("lenis", "lenis-smooth");
 
