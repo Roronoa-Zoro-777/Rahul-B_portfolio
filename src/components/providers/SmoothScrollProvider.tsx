@@ -42,12 +42,14 @@ export function SmoothScrollProvider({ children }: Props) {
   }, [pathname, lenis]);
 
   useEffect(() => {
-    // On mobile touch devices, use 100% native momentum touch scrolling for zero-lag swipe gestures
-    const isTouchDevice =
+    // On mobile devices, use 100% native momentum touch scrolling for zero-lag swipe gestures
+    const isMobileDevice =
       typeof window !== "undefined" &&
-      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      (window.innerWidth < 768 ||
+        window.matchMedia("(max-width: 768px)").matches ||
+        window.matchMedia("(hover: none) and (pointer: coarse)").matches);
 
-    if (isTouchDevice) {
+    if (isMobileDevice) {
       const onNativeScroll = () => {
         ScrollTrigger.update();
       };

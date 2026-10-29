@@ -240,12 +240,14 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
    */
   const requestSurroundingFrames = useCallback(
     (centerFrame: number) => {
+      const isMobile = isMobileRef.current || (typeof window !== "undefined" && window.innerWidth < 768);
       const isUp = lastScrollDirectionRef.current === "up";
-      const forwardRadius = 40;
-      const reverseRadius = 25;
+      // On mobile devices, keep prefetch window tight (3 forward, 1 reverse) to prevent network queuing and scroll stutter
+      const forwardRadius = isMobile ? 3 : 20;
+      const reverseRadius = isMobile ? 1 : 8;
 
       // Primary direction
-      const primaryStart = isUp ? centerFrame : centerFrame;
+      const primaryStart = centerFrame;
       const primaryEnd = isUp
         ? Math.max(1, centerFrame - forwardRadius)
         : Math.min(totalFrames, centerFrame + forwardRadius);
@@ -322,10 +324,11 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
     if (!canvas) return;
 
     // Detect mobile device
-    isMobileRef.current = window.innerWidth < 768;
+    const isMobile = window.innerWidth < 768;
+    isMobileRef.current = isMobile;
 
-    // Device Pixel Ratio capped at 1.5 for high GPU throughput
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    // Device Pixel Ratio capped at 1.0 on mobile for 120 FPS throughput, 1.5 on desktop
+    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -483,9 +486,10 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
       if (isSectionInViewRef.current && isDocumentVisibleRef.current) {
         const diff = targetFrameRef.current - currentFrameRef.current;
         const absDiff = Math.abs(diff);
+        const isMobile = isMobileRef.current;
 
-        // Adaptive lerp: Tight responsive tracking with zero drag latency
-        if (absDiff < 0.04) {
+        // Adaptive lerp: on mobile, track target frame 1:1 to eliminate lag behind native swipe momentum
+        if (absDiff < 0.04 || isMobile) {
           currentFrameRef.current = targetFrameRef.current;
         } else {
           // Dynamic factor: when distance is large, catch up faster (prevents rubber-banding)
@@ -511,8 +515,9 @@ export const ScrollFrameSequence = memo(function ScrollFrameSequence({
           }
         }
 
-        // Trigger predictive preloading
-        if (Math.abs(nextRenderFrame - lastFrameRequested) >= 2) {
+        // Trigger predictive preloading (throttled on mobile to protect network bandwidth)
+        const frameThreshold = isMobile ? 4 : 2;
+        if (Math.abs(nextRenderFrame - lastFrameRequested) >= frameThreshold) {
           lastFrameRequested = nextRenderFrame;
           requestSurroundingFrames(nextRenderFrame);
         }

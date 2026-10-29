@@ -66,6 +66,14 @@ export function GlassShatterEffect() {
   const lastTriggerTimeRef = useRef<number>(0);
 
   useEffect(() => {
+    // Disable entirely on mobile to eliminate touch/pointermove listener lag and GPU overhead
+    if (
+      typeof window !== "undefined" &&
+      (window.innerWidth < 768 || window.matchMedia("(max-width: 768px)").matches)
+    ) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -854,7 +862,7 @@ export function GlassShatterEffect() {
     <canvas
       ref={canvasRef}
       id="glass-shatter-canvas"
-      className="pointer-events-none fixed inset-0 z-[999999] h-screen w-screen overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-[999999] hidden md:block h-screen w-screen overflow-hidden"
       aria-hidden="true"
     />
   );

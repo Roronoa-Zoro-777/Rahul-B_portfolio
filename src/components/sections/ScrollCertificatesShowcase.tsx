@@ -130,8 +130,13 @@ export function ScrollCertificatesShowcase({
         rotY = p * 4;
       }
 
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
       el.style.opacity = String(opacity);
-      el.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale}) perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      if (isMobile) {
+        el.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
+      } else {
+        el.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale}) perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      }
     });
   }, []);
 

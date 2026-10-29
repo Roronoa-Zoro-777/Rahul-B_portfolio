@@ -221,6 +221,13 @@ html.lenis body {
   .scroll-animation--slow {
     height: 1200vh;
   }
+
+  .liquid-glass,
+  .nav-glass,
+  .contact-glass {
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+  }
 }
 
 .hud-tick {

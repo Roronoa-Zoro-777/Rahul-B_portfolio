@@ -17,9 +17,13 @@ export function CustomCrosshair() {
   useEffect(() => {
     if (!portfolioConfig.effects.customCrosshair) return;
 
-    // Check if device is touch-only
-    const isTouch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    if (isTouch) return;
+    // Check if device is mobile or touch
+    const isMobile =
+      typeof window !== "undefined" &&
+      (window.innerWidth < 768 ||
+        window.matchMedia("(max-width: 768px)").matches ||
+        window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+    if (isMobile) return;
 
     const onMouseMove = (e: MouseEvent) => {
       mousePos.current.x = e.clientX;

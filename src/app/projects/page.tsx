@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/sections/Footer";
-import { ProjectsArchive } from "@/components/sections/ProjectsArchive";
+
+const ProjectsArchive = dynamic(
+  () =>
+    import("@/components/sections/ProjectsArchive").then(
+      (mod) => mod.ProjectsArchive
+    ),
+  {
+    loading: () => (
+      <div className="relative min-h-[60vh] w-full flex items-center justify-center">
+        <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+      </div>
+    ),
+  }
+);
 
 export const metadata: Metadata = {
   title: "Data Analytics Projects & Dossiers // Rahul B",
